@@ -28,8 +28,11 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 * `python -m venv venv`
 * `. venv/bin/activate`
 * `pip install -r reqs.txt`
+* `. venv/bin/deactivate`
 
 ## Run the tests
+
+*(There is no need of activating python venv)*
 
 These two works:
 
