@@ -42,3 +42,71 @@ These two works:
 This one does not work:
 
 * `sudo ./wrapper.sh ./with_python.py json_cmd`
+
+## Results
+
+When it works, one can see that the chains are correctly associated with a device
+
+```
+table netdev example {
+chain fwd_chain_ac {
+type filter hook ingress device "ba_eth" priority filter + 1; policy accept;
+fwd to "bc_eth"
+}
+
+chain fwd_chain_ca {
+type filter hook ingress device "bc_eth" priority filter + 1; policy accept;
+fwd to "ba_eth"
+}
+}
+```
+
+When it does not work, chains are empty:
+
+```
+table netdev example {
+	chain fwd_chain_ac {
+		fwd to "bc_eth"
+	}
+
+	chain fwd_chain_ca {
+		fwd to "ba_eth"
+	}
+}
+```
+
+Another related bug is that the output of `nft.json_cmd({"nftables": [{"list": {"ruleset": None}}]})`
+does not shows the device the chain is associated to:
+
+```
+{'nftables': [{'metainfo': {'json_schema_version': 1,
+                            'release_name': 'Fearless Fosdick #3',
+                            'version': '1.0.1'}},
+              {'table': {'family': 'netdev', 'handle': 113, 'name': 'example'}},
+              {'chain': {'family': 'netdev',
+                         'handle': 1,
+                         'hook': 'ingress',
+                         'name': 'fwd_chain_ac',
+                         'policy': 'accept',
+                         'prio': 1,
+                         'table': 'example',
+                         'type': 'filter'}},
+              {'rule': {'chain': 'fwd_chain_ac',
+                        'expr': [{'fwd': {'dev': 'bc_eth'}}],
+                        'family': 'netdev',
+                        'handle': 3,
+                        'table': 'example'}},
+              {'chain': {'family': 'netdev',
+                         'handle': 2,
+                         'hook': 'ingress',
+                         'name': 'fwd_chain_ca',
+                         'policy': 'accept',
+                         'prio': 1,
+                         'table': 'example',
+                         'type': 'filter'}},
+              {'rule': {'chain': 'fwd_chain_ca',
+                        'expr': [{'fwd': {'dev': 'ba_eth'}}],
+                        'family': 'netdev',
+                        'handle': 4,
+                        'table': 'example'}}]}
+```
