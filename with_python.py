@@ -15,6 +15,26 @@ dev_bc = 'bc_eth'
 priority = 1
 policy = 'accept'
 
+dev_or_device = 'device'
+
+NFT_CMD = '''
+flush ruleset
+add table {family} {table}
+add chain {family} {table} {fwd_chain_ac} {{ type {chain_type} hook {hook} device {dev_ba} priority {priority}; policy {policy}; }}
+add chain {family} {table} {fwd_chain_ca} {{ type {chain_type} hook {hook} device {dev_bc} priority {priority}; policy {policy}; }}
+add rule  {family} {table} {fwd_chain_ac} fwd to {dev_bc}
+add rule  {family} {table} {fwd_chain_ca} fwd to {dev_ba}
+'''.format(family=family,
+           table=table,
+           fwd_chain_ac=fwd_chain_ac,
+           fwd_chain_ca=fwd_chain_ca,
+           chain_type=chain_type,
+           hook=hook,
+           dev_ba=dev_ba,
+           dev_bc=dev_bc,
+           priority=priority,
+           policy=policy,
+           )
 
 NFT_CONFIG = {'nftables':
         [
@@ -31,7 +51,7 @@ NFT_CONFIG = {'nftables':
                     'name': fwd_chain_ac,
                     'type': chain_type,
                     'hook': hook,
-                    'device': dev_ba,
+                    dev_or_device: dev_ba,
                     'priority': priority,
                     'policy': policy,
                 }
@@ -43,7 +63,7 @@ NFT_CONFIG = {'nftables':
                     'name': fwd_chain_ca,
                     'type': chain_type,
                     'hook': hook,
-                    'device': dev_bc,
+                    dev_or_device: dev_bc,
                     'priority': priority,
                     'policy': policy,
                 }
@@ -66,6 +86,7 @@ NFT_CONFIG = {'nftables':
             }},
         ]}
 
+
 nft = Nftables()
 nft.set_json_output(True)
 
@@ -77,15 +98,8 @@ if len(arguments) != 2:
 if arguments[1] == 'json_cmd':
     rc, output, error = nft.json_cmd(NFT_CONFIG)
 elif 'cmd':
-    rc, output, error = nft.cmd(
-    '''
-    flush ruleset
-    add table netdev example
-    add chain netdev example fwd_chain_ac { type filter hook ingress device ba_eth priority 1; policy accept; }
-    add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth priority 1; policy accept; }
-    add rule netdev example fwd_chain_ac fwd to bc_eth
-    add rule netdev example fwd_chain_ca fwd to ba_eth
-    ''')
+    print(NFT_CMD)
+    rc, output, error = nft.cmd(NFT_CMD)
 else:
     raise ValueError('argument must be json_cmd or cmd')
 
