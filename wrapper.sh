@@ -46,12 +46,13 @@ echo ================================
 echo after wrapping: nft list ruleset
 echo ================================
 
-# Check ruleset
-ip netns exec $NS_B nft list ruleset
 
 # Test if it really works
-ip netns exec $NS_A ping -W 1 -c 1 172.17.100.2
-ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
+ip netns exec $NS_A ping -W 1 -c 5 172.17.100.2
+ip netns exec $NS_C ping -W 1 -c 5 172.17.100.1
+
+# Check ruleset
+ip netns exec $NS_B nft list ruleset
 
 # Cleanup:
 ip -n $NS_A link delete ab_eth # also deletes ba_eth

@@ -17,12 +17,13 @@ policy = 'accept'
 
 dev_or_device = 'device'
 
+
 NFT_CMD = '''
 flush ruleset
 add table {family} {table}
-add chain {family} {table} {fwd_chain_ac} {{ type {chain_type} hook {hook} device {dev_ba} priority {priority}; policy {policy}; }}
-add chain {family} {table} {fwd_chain_ca} {{ type {chain_type} hook {hook} device {dev_bc} priority {priority}; policy {policy}; }}
-add rule  {family} {table} {fwd_chain_ac} fwd to {dev_bc}
+add chain {family} {table} {fwd_chain_ac} {{ type {chain_type} hook {hook} device {dev_ba} priority {priority}; policy {policy}; counter comment "count accepted packets"}}
+add chain {family} {table} {fwd_chain_ca} {{ type {chain_type} hook {hook} device {dev_bc} priority {priority}; policy {policy}; counter commet "count accepted packets"}}
+add rule  {family} {table} {fwd_chain_ac} fwnd to {dev_bc}
 add rule  {family} {table} {fwd_chain_ca} fwd to {dev_ba}
 '''.format(family=family,
            table=table,
@@ -36,68 +37,14 @@ add rule  {family} {table} {fwd_chain_ca} fwd to {dev_ba}
            policy=policy,
            )
 
-NFT_CONFIG = {'nftables':
-        [
-            {'add': {'table':
-                {
-                    'family': family,
-                    'name': table,
-                }
-            }},
-            {'add': {'chain':
-                {
-                    'family': family,
-                    'table': table,
-                    'name': fwd_chain_ac,
-                    'type': chain_type,
-                    'hook': hook,
-                    dev_or_device: dev_ba,
-                    'priority': priority,
-                    'policy': policy,
-                }
-            }},
-            {'add': {'chain':
-                {
-                    'family': family,
-                    'table': table,
-                    'name': fwd_chain_ca,
-                    'type': chain_type,
-                    'hook': hook,
-                    dev_or_device: dev_bc,
-                    'priority': priority,
-                    'policy': policy,
-                }
-            }},
-            {'add': {'rule':
-                {
-                    'family': family,
-                    'table': table,
-                    'chain': fwd_chain_ac,
-                    'expr': [{'fwd': {'dev': 'bc_eth'}}],
-                }
-            }},
-            {'add': {'rule':
-                {
-                    'family': family,
-                    'table': table,
-                    'chain': fwd_chain_ca,
-                    'expr': [{'fwd': {'dev': 'ba_eth'}}],
-                }
-            }},
-        ]}
-
-
 nft = Nftables()
 nft.set_json_output(True)
 
-nft.json_validate(NFT_CONFIG)
 
 if len(arguments) != 2:
     raise ValueError('argument must be json_cmd or cmd')
 
-if arguments[1] == 'json_cmd':
-    rc, output, error = nft.json_cmd(NFT_CONFIG)
-elif 'cmd':
+if arguments[1] == 'cmd':
     print(NFT_CMD)
     rc, output, error = nft.cmd(NFT_CMD)
 else:
