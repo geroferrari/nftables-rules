@@ -1,9 +1,0 @@
-jsonschema # needed by nftables validator
-
-# Python bindings for nftables are included on nftables Arch Linux package
-# /usr/lib/python3.10/site-packages/nftables/nftables.py
-# * they are not in pip repos
-# * debian has them in a different package python3-nftables
-# https://stackoverflow.com/questions/69168692/how-can-i-use-the-python-nftables-library-in-a-virtual-environment
-
-git+https://salsa.debian.org/pkg-netfilter-team/pkg-nftables#egg=nftables&subdirectory=py

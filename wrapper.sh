@@ -37,8 +37,7 @@ ip -n $NS_C addr add 172.17.100.2/24 dev cb_eth
 # nftables command execution for setting the forwarding:
 # $@ must be one of:
 #   ./with_cli.sh
-#   ./with_python.py cmd
-#   ./with_python.py json_cmd
+
 
 ip netns exec $NS_B $@
 
@@ -48,8 +47,8 @@ echo ================================
 
 
 # Test if it really works
-ip netns exec $NS_A ping -W 1 -c 5 172.17.100.2
-ip netns exec $NS_C ping -W 1 -c 5 172.17.100.1
+ip netns exec $NS_A ping -W 1 -c 1 172.17.100.2
+ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
 
 # Check ruleset
 ip netns exec $NS_B nft list ruleset
