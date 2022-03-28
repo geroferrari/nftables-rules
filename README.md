@@ -35,21 +35,20 @@ When it works, one can see the quantity of packets and bytes.
 
 
 ```
-5 packets transmitted, 5 received, 0% packet loss, time 4087ms
-rtt min/avg/max/mdev = 0.053/0.094/0.131/0.027 ms
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.029/0.029/0.029/0.000 ms
 table netdev example {
 	chain fwd_chain_ac {
 		type filter hook ingress device "ba_eth" priority filter + 1; policy accept;
-		counter packets 18 bytes 1308
+		counter packets 3 bytes 196
 		fwd to "bc_eth"
 	}
 
 	chain fwd_chain_ca {
 		type filter hook ingress device "bc_eth" priority filter + 1; policy accept;
-		counter packets 18 bytes 1308
+		counter packets 3 bytes 196
 		fwd to "ba_eth"
 	}
 }
-geron
 ```
 
