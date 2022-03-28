@@ -52,3 +52,23 @@ table netdev example {
 }
 ```
 
+##  ISSUE: 
+When the line to reset the counters is executed form the wrapper.sh  the following is printed on the screen: 
+
+```
+table netdev example {
+	counter counter_ca {
+		packets 3 bytes 196
+	}
+	counter counter_ac {
+		packets 3 bytes 196
+	}
+	counter counter_ac {
+		packets 3 bytes 196
+	}
+	counter counter_ca {
+		packets 3 bytes 196
+	}
+}
+```
+The counters are reset, but I am not so sure why this is appearing on the screen.

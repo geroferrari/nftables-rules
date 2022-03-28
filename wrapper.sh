@@ -53,6 +53,19 @@ ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
 # Check ruleset
 ip netns exec $NS_B nft list ruleset
 
+echo ================================
+echo after printing the counters: reseting counters
+echo ================================
+
+ip netns exec $NS_B nft reset counters
+
+echo ================================
+echo it should not be printing the table above, not so sure what is doing there.
+echo ================================
+
+# Check ruleset
+ip netns exec $NS_B nft list ruleset
+
 # Cleanup:
 ip -n $NS_A link delete ab_eth # also deletes ba_eth
 ip -n $NS_C link delete cb_eth # also deletes bc_eth
