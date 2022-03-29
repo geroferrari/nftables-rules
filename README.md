@@ -23,10 +23,10 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ## Run the tests
 
-*(There is no need of activating python venv)*
 
 
 * `sudo ./wrapper.sh ./with_cli.sh`
+* `sudo ./wrapper.sh ./with_nft.nft`
 
 
 ## Results

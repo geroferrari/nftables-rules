@@ -37,6 +37,7 @@ ip -n $NS_C addr add 172.17.100.2/24 dev cb_eth
 # nftables command execution for setting the forwarding:
 # $@ must be one of:
 #   ./with_cli.sh
+#   ./with_nft.nft
 
 
 ip netns exec $NS_B $@
@@ -57,7 +58,7 @@ echo ================================
 echo after printing the counters: reseting counters
 echo ================================
 
-ip netns exec $NS_B nft reset counters
+#ip netns exec $NS_B nft reset counters
 
 echo ================================
 echo it should not be printing the table above, not so sure what is doing there.

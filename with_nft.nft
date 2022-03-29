@@ -1,0 +1,23 @@
+flush ruleset
+
+table netdev example {
+    counter counter_ac{
+
+    }
+
+    counter counter_ca{
+
+    }
+
+    chain fwd_chain_ac {
+        type filter hook ingress device ba_eth priority 1; policy accept;
+        counter_ac
+        fwd to bc_eth 
+    }
+
+    chain fwd_chain_ca {
+        type filter hook ingress device bc_eth priority 1; policy accept;
+        counter_ca
+        fwd to ba_eth 
+    }
+}
