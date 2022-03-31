@@ -4,21 +4,57 @@ flush ruleset
 
 table netdev example {
 
-    counter counter_ac {
+    ########## counter for NS_A ingress ############
+    counter counter_ns_a_ingress_arp{}
+    counter counter_ns_a_ingress_icmp{}    
+    counter counter_ns_a_ingress_tcp{}
+    counter counter_ns_a_ingress_udp{}
+    counter counter_ns_a_ingress_ip6{}
+    counter counter_ns_a_ingress_received{}
+    counter counter_ns_a_ingress_dropped{}
+    counter counter_ns_a_total{}
+
+    ########## counter for NS_C ingress ############
+    counter counter_ns_c_ingress_arp{}
+    counter counter_ns_c_ingress_icmp{}    
+    counter counter_ns_c_ingress_tcp{}
+    counter counter_ns_c_ingress_udp{}
+    counter counter_ns_c_ingress_ip6{}
+    counter counter_ns_c_ingress_received{}
+    counter counter_ns_c_ingress_dropped{}
+    counter counter_ns_c_total{}
+
+    chain ns_a_ingress {
+        type filter hook ingress device ba_eth priority 0;
+        ip daddr 172.17.100.1 counter name counter_ns_a_ingress_received
+        arp ptype 0x0800 counter name counter_ns_a_ingress_arp  
+        ip protocol icmp counter name counter_ns_a_ingress_icmp
+        ip protocol tcp counter name counter_ns_a_ingress_tcp
+        ip protocol udp counter name counter_ns_a_ingress_udp 
+        ip6 nexthdr icmpv6  counter name counter_ns_a_ingress_ip6 
+        counter name counter_ns_a_total
     }
 
-    counter counter_ca {
-    }    
+    chain ns_c_ingress {
+        type filter hook ingress device bc_eth priority 0; 
+        ip daddr 172.17.100.2 counter  name counter_ns_c_ingress_received
+        arp ptype 0x0800 counter name counter_ns_c_ingress_arp  
+        ip protocol icmp counter name counter_ns_c_ingress_icmp
+        ip protocol tcp counter name counter_ns_c_ingress_tcp
+        ip protocol udp counter name counter_ns_c_ingress_udp 
+        ip6 nexthdr icmpv6  counter name counter_ns_c_ingress_ip6 
+        counter name counter_ns_c_total
+    }
 
     chain fwd_chain_ac {
         type filter hook ingress device ba_eth priority 1; policy accept;
-        counter name counter_ac
         fwd to bc_eth 
+        counter name counter_ns_c_ingress_dropped  
     }
 
     chain fwd_chain_ca {
         type filter hook ingress device bc_eth priority 1; policy accept;
-        counter name counter_ca
         fwd to ba_eth 
+        counter name counter_ns_a_ingress_dropped
     }
 }

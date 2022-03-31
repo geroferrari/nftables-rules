@@ -37,7 +37,6 @@ ip -n $NS_C addr add 172.17.100.2/24 dev cb_eth
 # nftables command execution for setting the forwarding:
 # $@ must be one of:
 #   ./with_cli.sh
-#   ./with_nft.nft
 
 
 ip netns exec $NS_B $@
@@ -46,28 +45,27 @@ echo ================================
 echo after wrapping: nft list ruleset
 echo ================================
 
-#sleep 30
-#sudo ip netns exec ns_b tcpdump -i ba_eth -nn
-
-#ip netns list
-#ip netns exec $NS_B ip link
 
 # Test if it really works
-ip netns exec $NS_A ping -q -f -W 1 -c 1 172.17.100.2
-ip netns exec $NS_C ping -q -f -W 1 -c 1 172.17.100.1
+ip netns exec $NS_A ping -W 1 -c 1 172.17.100.2
+ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
+
 
 # Check ruleset
-ip netns exec $NS_B nft -j list ruleset
+ip netns exec $NS_B nft list ruleset
 
-#echo ================================
-#echo after printing the counters: reseting counters
-#echo ================================
+echo ================================
+echo after printing the counters: reseting counters
+echo ================================
 
-#ip netns exec $NS_B nft reset counters
+ip netns exec $NS_B nft reset counters
+
+echo ================================
+echo it should not be printing the table above, not so sure what is doing there.
+echo ================================
 
 # Check ruleset
-#ip netns exec $NS_B nft list ruleset
-
+ip netns exec $NS_B nft list ruleset
 
 # Cleanup:
 ip -n $NS_A link delete ab_eth # also deletes ba_eth

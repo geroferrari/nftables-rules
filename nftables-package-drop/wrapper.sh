@@ -47,24 +47,12 @@ echo ================================
 
 
 # Test if it really works
-ip netns exec $NS_A ping -q -f -W 1 -c 1000 172.17.100.2
-ip netns exec $NS_C ping -q -f -W 1 -c 1000 172.17.100.1
+ip netns exec $NS_A ping -q -f -W 1 -c 100 172.17.100.2
+#ip netns exec $NS_C ping -q -f -W 1 -c 100 172.17.100.1
 
 # Check ruleset
 ip netns exec $NS_B nft list ruleset
 
-echo ================================
-echo after printing the counters: reseting counters
-echo ================================
-
-ip netns exec $NS_B nft reset counters
-
-echo ================================
-echo it should not be printing the table above, not so sure what is doing there.
-echo ================================
-
-# Check ruleset
-ip netns exec $NS_B nft list ruleset
 
 # Cleanup:
 ip -n $NS_A link delete ab_eth # also deletes ba_eth

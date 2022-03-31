@@ -72,3 +72,163 @@ table netdev example {
 ##  ISSUE: 
 They are not converging to the value I set.
 
+### Test 2: 100 Ping from NS_A to NS_C: 
+100 packets transmitted, 93 received, 7% packet loss, time 116ms
+
+Final state of the counters in NS_A 
+```json
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_arp",
+            "table":"example",
+            "handle":5,
+            "packets":1,
+            "bytes":28
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_icmp",
+            "table":"example",
+            "handle":6,
+            "packets":100,
+            "bytes":8400
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_tcp",
+            "table":"example",
+            "handle":7,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_udp",
+            "table":"example",
+            "handle":8,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_ip6",
+            "table":"example",
+            "handle":9,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_received",
+            "table":"example",
+            "handle":10,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_a_ingress_dropped",
+            "table":"example",
+            "handle":11,
+            "packets":0,
+            "bytes":0
+         }
+      },
+```
+
+Final state of the counters in NS_C
+```json
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_arp",
+            "table":"example",
+            "handle":12,
+            "packets":1,
+            "bytes":28
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_icmp",
+            "table":"example",
+            "handle":13,
+            "packets":93,
+            "bytes":7812
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_tcp",
+            "table":"example",
+            "handle":14,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_udp",
+            "table":"example",
+            "handle":15,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_ip6",
+            "table":"example",
+            "handle":16,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_received",
+            "table":"example",
+            "handle":17,
+            "packets":0,
+            "bytes":0
+         }
+      },
+      {
+         "counter":{
+            "family":"netdev",
+            "name":"counter_ns_c_ingress_dropped",
+            "table":"example",
+            "handle":18,
+            "packets":0,
+            "bytes":0
+         }
+      },
+```
+
+| ingress  | NS_A | NS_C | info                                                                    |
+|----------|------|------|-------------------------------------------------------------------------|
+| ARP      | 1    | 1    | *It is weird that there is only one*                                    |
+| ICMP     | 100  | 93   | NS_A : 100 ICMP Echo reply NS_C : only 93 ICMP Echo request srrive to C |
+| TCP      | 0    | 0    |                                                                         |
+| UDP      | 0    | 0    |                                                                         |
+| IP6      | 0    | 0    |                                                                         |
+| Received | 0    | 0    | ???                                                                     |
+| Dropped  | 0    | 0    |                                                                         |
+
