@@ -33,7 +33,6 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 When it works, one can see the quantity of packets and bytes.
 
-
 ```
 --- 172.17.100.2 ping statistics ---
 1000 packets transmitted, 843 received, 15,7% packet loss, time 2624ms
@@ -69,10 +68,7 @@ table netdev example {
 
 ```
 
-##  ISSUE: 
-They are not converging to the value I set.
-
-### Test 2: 100 Ping from NS_A to NS_C: 
+### Test 1: 100 Ping from NS_A to NS_C: 
 100 packets transmitted, 93 received, 7% packet loss, time 116ms
 
 Final state of the counters in NS_A 
