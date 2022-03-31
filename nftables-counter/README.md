@@ -21,18 +21,8 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 * `git clone https://github.com/geroferrari/nftables-counter`
 * `cd nftables-counter`
 
-## Run the tests
-
-
-Execute Test 1 - 10 Ping from A to C
-* `sudo ./wrapper.sh ./with_nft.nft  test1`
-
-Execute Test 1 - 1 Ping from A to C & 1 ping from C to A
-* `sudo ./wrapper.sh ./with_nft.nft  test2`
-
-Add a 'j' if you prefer to have the result in json format:
-* `sudo ./wrapper.sh ./with_nft.nft  test1 j`
-* `sudo ./wrapper.sh ./with_nft.nft  test2 j`
+## Execute
+* `sudo ./wrapper.sh ./with_nft.nft `
 
 
 
