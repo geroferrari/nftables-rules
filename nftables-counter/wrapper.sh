@@ -8,6 +8,7 @@ NS_A='ns_a'
 NS_B='ns_b'
 NS_C='ns_c'
 
+
 # Network namespaces creation
 ip netns add $NS_A
 ip netns add $NS_B
@@ -31,12 +32,10 @@ ip -n $NS_C link set dev cb_eth up
 
 ip -n $NS_A addr add 172.17.100.1/24 dev ab_eth
 ip -n $NS_C addr add 172.17.100.2/24 dev cb_eth
-#   ip -n $NS_A addr
-#   ip -n $NS_C addr
+
 
 # nftables command execution for setting the forwarding:
 # $@ must be one of:
-#   ./with_cli.sh
 #   ./with_nft.nft
 
 
@@ -46,6 +45,7 @@ echo ================================
 echo after wrapping: nft list ruleset
 echo ================================
 
+
 #sleep 30
 #sudo ip netns exec ns_b tcpdump -i ba_eth -nn
 
@@ -53,20 +53,18 @@ echo ================================
 #ip netns exec $NS_B ip link
 
 # Test if it really works
-ip netns exec $NS_A ping -q -f -W 1 -c 1 172.17.100.2
-ip netns exec $NS_C ping -q -f -W 1 -c 1 172.17.100.1
+ip netns exec $NS_A ping -W 1 -c 1 172.17.100.2
+ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
 
-# Check ruleset
-ip netns exec $NS_B nft -j list ruleset
 
-#echo ================================
-#echo after printing the counters: reseting counters
-#echo ================================
+#ip netns exec $NS_B nft -j list ruleset
+ip netns exec $NS_B nft list ruleset
 
-#ip netns exec $NS_B nft reset counters
 
-# Check ruleset
-#ip netns exec $NS_B nft list ruleset
+echo ================================
+echo reseting the following counters...
+echo ================================
+ip netns exec $NS_B nft reset counters
 
 
 # Cleanup:

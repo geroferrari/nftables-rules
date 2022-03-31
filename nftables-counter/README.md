@@ -24,8 +24,16 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 ## Run the tests
 
 
+Execute Test 1 - 10 Ping from A to C
+* `sudo ./wrapper.sh ./with_nft.nft  test1`
 
-* `sudo ./wrapper.sh ./with_nft.nft`
+Execute Test 1 - 1 Ping from A to C & 1 ping from C to A
+* `sudo ./wrapper.sh ./with_nft.nft  test2`
+
+Add a 'j' if you prefer to have the result in json format:
+* `sudo ./wrapper.sh ./with_nft.nft  test1 j`
+* `sudo ./wrapper.sh ./with_nft.nft  test2 j`
+
 
 
 ## Results
@@ -302,8 +310,8 @@ Final state of the counters in NS_A
             "name":"counter_ns_a_total",
             "table":"example",
             "handle":12,
-            "packets":4,
-            "bytes":272
+            "packets":3,
+            "bytes":196
          }
 ```
 
@@ -389,13 +397,13 @@ Final state of the counters in NS_C
          }
 ```
 
-| ingress  | NS_A | NS_C | info                                                                    |
-|----------|------|------|-------------------------------------------------------------------------|
-| ARP      | 1    | 1    | *It is weird that there is only one*                                    |
-| ICMP     | 100  | 93   | NS_A : 100 ICMP Echo reply NS_C : only 93 ICMP Echo request srrive to C |
-| TCP      | 0    | 0    |                                                                         |
-| UDP      | 0    | 0    |                                                                         |
-| IP6      | 0    | 0    |                                                                         |
-| Received | 0    | 0    | ???                                                                     |
-| Dropped  | 0    | 0    |                                                                         |
-
+| ingress  | NS_A | NS_C | info                                     |
+|----------|------|------|------------------------------------------|
+| ARP      | 1    | 1    | *It is weird that there is only one*     |
+| ICMP     | 2    | 2    | one echo request and one echo reply each |
+| TCP      | 0    | 0    |                                          |
+| UDP      | 0    | 0    |                                          |
+| IP6      | 0    | 0    |                                          |
+| Received | 0    | 0    | ???                                      |
+| Dropped  | 0    | 0    |                                          |
+| Total    | 3    | 3    |                                          |
