@@ -20,6 +20,7 @@ ip netns exec $NS_B $@
 ip netns exec $NS_A ping -W 1 -c 1 172.17.100.2
 ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
 
+ip netns exec $NS_B nft list ruleset
 
 # desactiva
 set +x

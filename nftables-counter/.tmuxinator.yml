@@ -15,4 +15,4 @@ windows:
       layout: even-vertical
       panes:
         - ip netns exec ns_b tcpdump -i ba_eth
-        - ./wrapper.sh ./with_cli.sh
+        - ./wrapper.sh ./with_nft.nft
