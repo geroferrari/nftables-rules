@@ -1,0 +1,18 @@
+# ./.tmuxinator.yml
+#
+# IMPORTANT !!!
+# This project is meant to be executed with sudo
+
+name: counters
+root: ./
+
+on_project_start: ./_up.sh
+
+on_project_stop: ./_down.sh
+
+windows:
+  - Booking:
+      layout: even-vertical
+      panes:
+        - ip netns exec ns_b tcpdump -i ba_eth
+        - ./wrapper.sh ./with_cli.sh

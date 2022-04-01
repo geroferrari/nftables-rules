@@ -25,6 +25,10 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 * `sudo ./wrapper.sh ./with_nft.nft `
 
 
+* `sudo tmuxinator start`
+* `CTRL+b d` para detach
+* `sudo tmuxinator stop counters`
+
 
 ## Results
 
