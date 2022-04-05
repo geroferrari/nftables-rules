@@ -26,7 +26,9 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 *(There is no need of activating python venv)*
 
 
-* `sudo ./wrapper.sh ./with_nft.nft`
+* `sudo tmuxinator start`
+* `CTRL+b d` para detach
+* `sudo tmuxinator stop counters`
 
 
 ## Results
@@ -69,162 +71,17 @@ table netdev example {
 ```
 
 ### Test 1: 100 Ping from NS_A to NS_C: 
-100 packets transmitted, 93 received, 7% packet loss, time 116ms
+1000 packets transmitted, 901 received, 9,9% packet loss, time 1677ms     
+rtt min/avg/max/mdev = 0.004/0.042/0.221/0.032 ms, ipg/ewma 1.678/0.035 ms  
 
-Final state of the counters in NS_A 
-```json
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_arp",
-            "table":"example",
-            "handle":5,
-            "packets":1,
-            "bytes":28
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_icmp",
-            "table":"example",
-            "handle":6,
-            "packets":100,
-            "bytes":8400
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_tcp",
-            "table":"example",
-            "handle":7,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_udp",
-            "table":"example",
-            "handle":8,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_ip6",
-            "table":"example",
-            "handle":9,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_received",
-            "table":"example",
-            "handle":10,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_a_ingress_dropped",
-            "table":"example",
-            "handle":11,
-            "packets":0,
-            "bytes":0
-         }
-      },
-```
-
-Final state of the counters in NS_C
-```json
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_arp",
-            "table":"example",
-            "handle":12,
-            "packets":1,
-            "bytes":28
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_icmp",
-            "table":"example",
-            "handle":13,
-            "packets":93,
-            "bytes":7812
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_tcp",
-            "table":"example",
-            "handle":14,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_udp",
-            "table":"example",
-            "handle":15,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_ip6",
-            "table":"example",
-            "handle":16,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_received",
-            "table":"example",
-            "handle":17,
-            "packets":0,
-            "bytes":0
-         }
-      },
-      {
-         "counter":{
-            "family":"netdev",
-            "name":"counter_ns_c_ingress_dropped",
-            "table":"example",
-            "handle":18,
-            "packets":0,
-            "bytes":0
-         }
-      },
-```
-
-| ingress  | NS_A | NS_C | info                                                                    |
-|----------|------|------|-------------------------------------------------------------------------|
-| ARP      | 1    | 1    | *It is weird that there is only one*                                    |
-| ICMP     | 100  | 93   | NS_A : 100 ICMP Echo reply NS_C : only 93 ICMP Echo request srrive to C |
-| TCP      | 0    | 0    |                                                                         |
-| UDP      | 0    | 0    |                                                                         |
-| IP6      | 0    | 0    |                                                                         |
-| Received | 0    | 0    | ???                                                                     |
-| Dropped  | 0    | 0    |                                                                         |
-
+|  Ingress |      BA_ETH      |      BC_ETH      |
+|:--------:|:----------------:|:----------------:|
+|          | packets    Bytes | packets    Bytes |
+| ARP      | 1          28    | 1          28    |
+| ICMP     | 1000       84000 | 901        75684 |
+| TCP      | 0          0     | 0          0     |
+| UDP      | 0          0     | 0          0     |
+| IP       | 1000       84000 | 901        75684 |
+| IP6      | 2          128   | 1          56    |
+| Ethernet | 1003       84180 | 905        75940 |
+| Dropped  | 99         8316  | 0          0     |
