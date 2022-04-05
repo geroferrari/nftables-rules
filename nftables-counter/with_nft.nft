@@ -28,7 +28,7 @@ table netdev example {
         type filter hook ingress device ba_eth priority 0; policy accept;
         ip version 4 counter name counter_ns_ba_ingress_ip
         arp ptype 0x0800 counter name counter_ns_ba_ingress_arp  
-        ip protocol icmp counter name counter_ns_ba_ingress_icmp drop
+        ip protocol icmp counter name counter_ns_ba_ingress_icmp
         ip protocol tcp counter name counter_ns_ba_ingress_tcp
         ip protocol udp counter name counter_ns_ba_ingress_udp 
         ip6 nexthdr icmpv6  counter name counter_ns_ba_ingress_ip6 
@@ -40,7 +40,7 @@ table netdev example {
         type filter hook ingress device bc_eth priority 0; policy accept;
         ip version 4 counter  name counter_ns_bc_ingress_ip
         arp ptype 0x0800 counter name counter_ns_bc_ingress_arp  
-        ip protocol icmp counter name counter_ns_bc_ingress_icmp drop
+        ip protocol icmp counter name counter_ns_bc_ingress_icmp
         ip protocol tcp counter name counter_ns_bc_ingress_tcp
         ip protocol udp counter name counter_ns_bc_ingress_udp 
         ip6 nexthdr icmpv6  counter name counter_ns_bc_ingress_ip6 
