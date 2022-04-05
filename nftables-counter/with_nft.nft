@@ -4,7 +4,6 @@ flush ruleset
 
 table netdev example {
 
-    ########## counter for NS_A ingress ############
     counter counter_ns_ba_ingress_arp{}
     counter counter_ns_ba_ingress_icmp{}    
     counter counter_ns_ba_ingress_tcp{}
@@ -14,7 +13,6 @@ table netdev example {
     counter counter_ns_ba_ingress_ethernet{}
     counter counter_ns_ba_ingress_dropped{}
 
-    ########## counter for NS_C ingress ############
     counter counter_ns_bc_ingress_arp{}
     counter counter_ns_bc_ingress_icmp{}    
     counter counter_ns_bc_ingress_tcp{}

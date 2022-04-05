@@ -3,7 +3,7 @@
 # IMPORTANT !!!
 # This project is meant to be executed with sudo
 
-name: counters
+name: packets-drop
 root: ./
 
 on_project_start: ./_up.sh
