@@ -6,32 +6,26 @@ table netdev example {
 
     chain fwd_chain_ac {
         type filter hook ingress device ba_eth priority 1; policy accept;
-        ip daddr 172.17.100.1 counter  
-        ip saddr 172.17.100.1 counter  
         arp ptype 0x0800 counter 
         ip protocol icmp counter 
         ip protocol tcp counter 
         ip protocol udp counter 
+        ip version 4 counter  
         ip6 nexthdr icmpv6  counter 
-        numgen random mod 100 < 20 drop      
-        #si queremos simular un porcentaje chiquito, poner mod 100-1 es menos preciso que poner 1000-10  
+        numgen random mod 1000 < 100 counter drop    
+        counter comment "Recevied/ethernet packets" 
         fwd to bc_eth        
-        counter comment "dropped" esto no se va a ejecutar, investigar como interactuan las cadenas
-        hay otras cadenas que solo tienen asociado un jump. 
-        podria separar y poner una cadena de fowarding. 
-        como contar todos los ethernet. 
     }
 
     chain fwd_chain_ca {
         type filter hook ingress device bc_eth priority 1; policy accept;
-        ip daddr 172.17.100.2 counter  
-        ip saddr 172.17.100.2 counter  
         arp ptype 0x0800 counter 
         ip protocol icmp counter 
         ip protocol tcp counter 
         ip protocol udp counter 
+        ip version 4 counter  
         ip6 nexthdr icmpv6  counter 
+        counter comment "Recevied/ethernet packets"
         fwd to ba_eth 
-        counter comment "dropped"
     }
 }

@@ -47,7 +47,7 @@ echo ================================
 
 
 # Test if it really works
-ip netns exec $NS_A ping -q -f -W 1 -c 100 172.17.100.2
+ip netns exec $NS_A ping -q -f -W 1 -c 1000 172.17.100.2
 #ip netns exec $NS_C ping -q -f -W 1 -c 100 172.17.100.1
 
 # Check ruleset
