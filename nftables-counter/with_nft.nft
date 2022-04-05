@@ -5,56 +5,58 @@ flush ruleset
 table netdev example {
 
     ########## counter for NS_A ingress ############
-    counter counter_ns_a_ingress_arp{}
-    counter counter_ns_a_ingress_icmp{}    
-    counter counter_ns_a_ingress_tcp{}
-    counter counter_ns_a_ingress_udp{}
-    counter counter_ns_a_ingress_ip6{}
-    counter counter_ns_a_ingress_received{}
-    counter counter_ns_a_ingress_dropped{}
-    counter counter_ns_a_total{}
+    counter counter_ns_ba_ingress_arp{}
+    counter counter_ns_ba_ingress_icmp{}    
+    counter counter_ns_ba_ingress_tcp{}
+    counter counter_ns_ba_ingress_udp{}
+    counter counter_ns_ba_ingress_ip{}
+    counter counter_ns_ba_ingress_ip6{}
+    counter counter_ns_ba_ingress_ethernet{}
+    counter counter_ns_ba_ingress_dropped{}
 
     ########## counter for NS_C ingress ############
-    counter counter_ns_c_ingress_arp{}
-    counter counter_ns_c_ingress_icmp{}    
-    counter counter_ns_c_ingress_tcp{}
-    counter counter_ns_c_ingress_udp{}
-    counter counter_ns_c_ingress_ip6{}
-    counter counter_ns_c_ingress_received{}
-    counter counter_ns_c_ingress_dropped{}
-    counter counter_ns_c_total{}
+    counter counter_ns_bc_ingress_arp{}
+    counter counter_ns_bc_ingress_icmp{}    
+    counter counter_ns_bc_ingress_tcp{}
+    counter counter_ns_bc_ingress_udp{}
+    counter counter_ns_bc_ingress_ip{}
+    counter counter_ns_bc_ingress_ip6{}
+    counter counter_ns_bc_ingress_ethernet{}
+    counter counter_ns_bc_ingress_dropped{}
 
-    chain ns_a_ingress {
-        type filter hook ingress device ba_eth priority 0;
-        ip daddr 172.17.100.1 counter name counter_ns_a_ingress_received
-        arp ptype 0x0800 counter name counter_ns_a_ingress_arp  
-        ip protocol icmp counter name counter_ns_a_ingress_icmp
-        ip protocol tcp counter name counter_ns_a_ingress_tcp
-        ip protocol udp counter name counter_ns_a_ingress_udp 
-        ip6 nexthdr icmpv6  counter name counter_ns_a_ingress_ip6 
-        counter name counter_ns_a_total
+    chain ns_ba_ingress {
+        type filter hook ingress device ba_eth priority 0; policy accept;
+        ip version 4 counter name counter_ns_ba_ingress_ip
+        arp ptype 0x0800 counter name counter_ns_ba_ingress_arp  
+        ip protocol icmp counter name counter_ns_ba_ingress_icmp drop
+        ip protocol tcp counter name counter_ns_ba_ingress_tcp
+        ip protocol udp counter name counter_ns_ba_ingress_udp 
+        ip6 nexthdr icmpv6  counter name counter_ns_ba_ingress_ip6 
+        counter name counter_ns_ba_ingress_ethernet
+        counter name counter_ns_ba_ingress_dropped
     }
 
-    chain ns_c_ingress {
-        type filter hook ingress device bc_eth priority 0; 
-        ip daddr 172.17.100.2 counter  name counter_ns_c_ingress_received
-        arp ptype 0x0800 counter name counter_ns_c_ingress_arp  
-        ip protocol icmp counter name counter_ns_c_ingress_icmp
-        ip protocol tcp counter name counter_ns_c_ingress_tcp
-        ip protocol udp counter name counter_ns_c_ingress_udp 
-        ip6 nexthdr icmpv6  counter name counter_ns_c_ingress_ip6 
-        counter name counter_ns_c_total
-    }
+    chain ns_bc_ingress { 
+        type filter hook ingress device bc_eth priority 0; policy accept;
+        ip version 4 counter  name counter_ns_bc_ingress_ip
+        arp ptype 0x0800 counter name counter_ns_bc_ingress_arp  
+        ip protocol icmp counter name counter_ns_bc_ingress_icmp drop
+        ip protocol tcp counter name counter_ns_bc_ingress_tcp
+        ip protocol udp counter name counter_ns_bc_ingress_udp 
+        ip6 nexthdr icmpv6  counter name counter_ns_bc_ingress_ip6 
+        counter name counter_ns_bc_ingress_ethernet
+        counter name counter_ns_bc_ingress_dropped
+    } 
 
     chain fwd_chain_ac {
         type filter hook ingress device ba_eth priority 1; policy accept;
-        fwd to bc_eth 
-        counter name counter_ns_c_ingress_dropped  
+        fwd to bc_eth
     }
+
 
     chain fwd_chain_ca {
         type filter hook ingress device bc_eth priority 1; policy accept;
         fwd to ba_eth 
-        counter name counter_ns_a_ingress_dropped
     }
+
 }

@@ -17,10 +17,10 @@ set -x
 ip netns exec $NS_B $@
 
 # Test if it really works
-ip netns exec $NS_A ping -W 1 -c 1 172.17.100.2
-ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
+ip netns exec $NS_A ping -W 1 -c 5 172.17.100.2
+#ip netns exec $NS_C ping -W 1 -c 1 172.17.100.1
 
-ip netns exec $NS_B nft list ruleset
+ip netns exec $NS_B nft -j list ruleset | tee output.json
 
 # desactiva
 set +x

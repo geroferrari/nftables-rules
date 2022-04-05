@@ -3,19 +3,24 @@
 flush ruleset
 
 table netdev example {
-
-    limit lim_400ppm { 
-        rate 400/minute ;
-    }
     
     chain fwd_chain_ac {
-        type filter hook ingress device ba_eth priority 1; policy drop;
-        limit name "lim_400ppm" accept
+        type filter hook ingress device ba_eth priority 1; policy accept;
         fwd to bc_eth        
     }
 
     chain fwd_chain_ca {
         type filter hook ingress device bc_eth priority 1; policy accept;
+        ip protocol udp limit rate 1 mbytes/second accept        
+        #ip6 nexthdr icmpv6  counter 
+        #ip6 nexthdr icmpv6 limit rate 1/minute accept   
+        #ip6 nexthdr icmpv6  counter 
+        #icmp type echo-request limit rate 1/minute accept
+        #arp ptype 0x0800 counter 
+        #ip protocol icmp counter 
+        counter 
         fwd to ba_eth 
+        counter
     }
 }
+la regla de limit no deberia joder al fwd. 

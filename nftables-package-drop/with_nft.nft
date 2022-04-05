@@ -13,9 +13,13 @@ table netdev example {
         ip protocol tcp counter 
         ip protocol udp counter 
         ip6 nexthdr icmpv6  counter 
-        numgen random mod 100 < 20 drop        
+        numgen random mod 100 < 20 drop      
+        #si queremos simular un porcentaje chiquito, poner mod 100-1 es menos preciso que poner 1000-10  
         fwd to bc_eth        
-        counter comment "dropped"
+        counter comment "dropped" esto no se va a ejecutar, investigar como interactuan las cadenas
+        hay otras cadenas que solo tienen asociado un jump. 
+        podria separar y poner una cadena de fowarding. 
+        como contar todos los ethernet. 
     }
 
     chain fwd_chain_ca {
