@@ -6,12 +6,16 @@ table netdev example {
     
     chain fwd_chain_ac {
         type filter hook ingress device ba_eth priority 1; policy accept;
-        fwd to bc_eth        
+        limit rate over 125000 bytes/second drop # 125000 bytes/s == 1 mbit/s
+        # Ethernet  22 + 1500 bytes      <----- limit en esta capa
+        #                IP 20 + 1480              (1500/1522 = 0.985)
+        #                        UDP 6 + 1474      (1480/1522 = 0.972)
+        #                                iperf3    (1474/1522 = 0.968)
+        fwd to bc_eth
     }
 
     chain fwd_chain_ca {
         type filter hook ingress device bc_eth priority 1; policy accept;
-        limit rate over 10/second
         fwd to ba_eth 
     }
 }
