@@ -8,11 +8,19 @@ while i < 10:
     if os.path.exists('output.json') == True:
         with open('output.json') as f:
         
-            json_data = json.load(f)
+            json_data = json.load(f)['nftables']
+            arp = json_data[2]
+
+            ba_arp_q = arp['counter']['packets']
+            ba_arp_b = arp['counter']['bytes']
+            bc_arp_q = json_data[10]['counter']['packets']
+            bc_arp_b = json_data[10]['counter']['bytes']
+            arp_t = 'ARP'
 
             print ("{:<10} | {:<21} | {:<21} |".format('Ingress', 'BA_ETH', 'BC_ETH'))
             print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('', 'packets', 'Bytes', 'packets', 'Bytes'))
-            print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('ARP', json_data['nftables'][2]['counter']['packets'] , json_data['nftables'][2]['counter']['bytes'] , json_data['nftables'][10]['counter']['packets'], json_data['nftables'][10]['counter']['bytes'] ))
+            print(f'{arp_t:<10} | {ba_arp_q:<10} {ba_arp_b:<10} | {bc_arp_q:<10} {bc_arp_b:<10} |')
+
             print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('ICMP', json_data['nftables'][3]['counter']['packets'] , json_data['nftables'][3]['counter']['bytes'],  json_data['nftables'][11]['counter']['packets'], json_data['nftables'][11]['counter']['bytes'] ))
             print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('TCP', json_data['nftables'][4]['counter']['packets'] , json_data['nftables'][4]['counter']['bytes'],  json_data['nftables'][12]['counter']['packets'], json_data['nftables'][12]['counter']['bytes'] ))
             print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('UDP', json_data['nftables'][5]['counter']['packets'] , json_data['nftables'][5]['counter']['bytes'],  json_data['nftables'][13]['counter']['packets'], json_data['nftables'][13]['counter']['bytes'] ))
