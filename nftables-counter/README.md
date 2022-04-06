@@ -18,7 +18,7 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ## Preparation
 
-* `git clone https://github.com/geroferrari/nftables-counter`
+* `git clone https://github.com/geroferrari/nftables-rules`
 * `cd nftables-counter`
 
 ## Execute

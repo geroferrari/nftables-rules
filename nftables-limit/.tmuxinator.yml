@@ -17,4 +17,5 @@ windows:
         - ip netns exec ns_c iperf3 -i 2 -s -f g
         - ./wrapper.sh ./with_nft.nft
         - ip netns exec ns_a iperf3 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
+      #  - python3 ./output.py
       #  - ip netns exec ns_a ping 172.17.100.2

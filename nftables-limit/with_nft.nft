@@ -11,16 +11,8 @@ table netdev example {
 
     chain fwd_chain_ca {
         type filter hook ingress device bc_eth priority 1; policy accept;
-        ip protocol udp limit rate 1 mbytes/second accept        
-        #ip6 nexthdr icmpv6  counter 
-        #ip6 nexthdr icmpv6 limit rate 1/minute accept   
-        #ip6 nexthdr icmpv6  counter 
-        #icmp type echo-request limit rate 1/minute accept
-        #arp ptype 0x0800 counter 
-        #ip protocol icmp counter 
-        counter 
+        limit rate over 10/second
         fwd to ba_eth 
-        counter
     }
 }
-la regla de limit no deberia joder al fwd. 
+

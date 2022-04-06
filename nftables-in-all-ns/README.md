@@ -1,4 +1,4 @@
-# nftables - Limit
+# nftables - in all namespaces
 This projects aims to show how counter extension for nftables works. 
 
 ## Idea
@@ -18,24 +18,16 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ## Preparation
 
-* `git clone https://github.com/geroferrari/nftables-rules
+* `git clone https://github.com/geroferrari/nftables-rules`
+* `cd nftables-in-all-ns`
 
 ## Execute
-* `sudo ./wrapper.sh ./with_nft.nft `
+* `sudo ./wrapper.sh`
 
 
 * `sudo tmuxinator start`
 * `CTRL+b d` para detach
-* `sudo tmuxinator stop limit`
-
-
-
-## Run the tests
-
-*(There is no need of activating python venv)*
-
-
-* `sudo ./wrapper.sh ./with_nft.nft`
+* `sudo tmuxinator stop in-all-ns`
 
 
 ## Results

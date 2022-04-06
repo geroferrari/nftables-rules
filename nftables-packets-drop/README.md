@@ -1,4 +1,4 @@
-# nftables - Counter
+# nftables - packets-drop
 This projects aims to show how counter extension for nftables works. 
 
 ## Idea
@@ -18,8 +18,8 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ## Preparation
 
-* `git clone https://github.com/geroferrari/nftables-counter`
-* `cd nftables-counter`
+* `git clone https://github.com/geroferrari/nftables-rules`
+* `cd nftables-packets-drop`
 
 ## Run the tests
 
@@ -28,7 +28,7 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 * `sudo tmuxinator start`
 * `CTRL+b d` para detach
-* `sudo tmuxinator stop counters`
+* `sudo tmuxinator stop packets-drop`
 
 
 ## Results
