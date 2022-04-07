@@ -9,8 +9,8 @@ table netdev example {
         limit rate over 125000 bytes/second drop # 125000 bytes/s == 1 mbit/s
         # Ethernet  22 + 1500 bytes      <----- limit en esta capa
         #                IP 20 + 1480              (1500/1522 = 0.985)
-        #                        UDP 6 + 1474      (1480/1522 = 0.972)
-        #                                iperf3    (1474/1522 = 0.968)
+        #                        UDP 8 + 1472      (1480/1522 = 0.972)
+        #                                iperf3    (1474/1522 = 0.967)
         fwd to bc_eth
     }
 
