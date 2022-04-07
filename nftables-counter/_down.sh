@@ -11,5 +11,3 @@ ip -n $NS_C link delete cb_eth # also deletes bc_eth
 ip netns delete $NS_A
 ip netns delete $NS_B
 ip netns delete $NS_C
-
-rm output.json

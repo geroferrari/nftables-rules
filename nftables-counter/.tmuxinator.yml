@@ -14,6 +14,6 @@ windows:
   - Booking:
       layout: even-vertical
       panes:
+        - inotifywait -r -m output.json -e modify | while read path action file;do python3 ./output.py; done
         - ip netns exec ns_b tcpdump -i ba_eth -nn
         - ./wrapper.sh ./with_nft.nft
-        - python3 ./output.py
