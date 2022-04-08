@@ -1,7 +1,33 @@
 #!./venv/bin/python3
+from doctest import Example
+from traceback import print_tb
 from nftables import Nftables
 from pprint import pprint
 from sys import argv as arguments
+
+if len(arguments) != 3:
+    raise ValueError('[ERROR] Arguments must be <percentage of losses>  <bandwith limit>')
+
+
+if arguments[1] == ""  and arguments[2] == "":
+    loss_percentage = 0
+    bandwith_limit = 10000000 #to not limit 
+
+if arguments[1] != "":
+    try:
+        loss_percentage = int(float(arguments[1])*10)
+    except:
+        raise ValueError('[ERROR] reading Argument 2 - Only one decimal is accepted')
+else:
+    ('[ERROR] Argument 2 must be a number betwwen 0 and 100')
+
+if arguments[2] != "" :
+    try:
+        bandwith_limit = str(arguments[2])
+    except:
+        raise ValueError('[ERROR] reading Argument 3 - it must be a integer')
+else:
+    raise ValueError('[ERROR] Argmument 3 must be the number of bytes per second (ex.: 125000)')
 
 
 family = 'netdev'
@@ -192,7 +218,6 @@ NFT_CONFIG = {'nftables':
                             {"counter": "counter_ns_ba_ingress_ethernet"}
                         ]}}
             },
-
             {'add': {'rule':
                      {
                          'family': family,
@@ -286,40 +311,73 @@ NFT_CONFIG = {'nftables':
                             {"counter": "counter_ns_bc_ingress_ethernet"}
                         ]}}
             },
-
-
-
-]}
+            {'add': {'rule': {
+                'family': family,
+                'table': table,
+                'chain': fwd_chain_ac,
+                'expr': [
+                    {
+                        'match': {
+                            'op': '<',
+                            'left': {'numgen': {
+                                'mode': 'random',
+                                'mod': 1000,
+                                'offset': 0
+                            }
+                            },
+                            'right': loss_percentage
+                        }
+                    },
+                    {'counter': 'counter_ns_ba_ingress_dropped'},
+                    {'drop': "drop"}
+                ]
+            }}
+            },
+            # {'add':{ 'rule': {
+            #     'family': family,
+            #     'table': table,
+            #     'chain': fwd_chain_ac,
+            #     'expr': [
+            #         {
+            #             'limit': {
+            #                 'rate': bandwith_limit,
+            #                 'rate': bandwith_limit,
+            #                 'per': 'second',
+            #                 'rate_unit': 'bytes'
+            #             }
+            #         },
+            #         { 'drop': "drop"}
+            #     ]
+            # }}
+            # }
+        ]}
 
 nft = Nftables()
 nft.set_json_output(True)
 
 nft.json_validate(NFT_CONFIG)
 
-if len(arguments) != 2:
-    raise ValueError('argument must be cmd')
+rc, output, error = nft.cmd(
+'''
+flush ruleset
+add table netdev example
+add chain netdev example ns_ba_ingress { type filter hook ingress device ba_eth priority 0; policy accept; }
+add chain netdev example ns_bc_ingress { type filter hook ingress device bc_eth priority 0; policy accept; }
+add chain netdev example fwd_chain_ac { type filter hook ingress device ba_eth priority 1; policy accept; }
+add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth priority 1; policy accept; }
+''')
 
-if 'cmd':
-    rc, output, error = nft.cmd(
-    '''
-    flush ruleset
-    add table netdev example
-    add chain netdev example ns_ba_ingress { type filter hook ingress device ba_eth priority 0; policy accept; }
-    add chain netdev example ns_bc_ingress { type filter hook ingress device bc_eth priority 0; policy accept; }
-    add chain netdev example fwd_chain_ac { type filter hook ingress device ba_eth priority 1; policy accept; }
-    add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth priority 1; policy accept; }
-    add rule netdev example fwd_chain_ac fwd to bc_eth
-    add rule netdev example fwd_chain_ca fwd to ba_eth
-    ''')
-else:
-    raise ValueError('argument must be json_cmd or cmd')
+rc, output, error = nft.json_cmd(NFT_CONFIG)
+
+cmd_string = '''\n
+add rule netdev example fwd_chain_ac limit rate over ''' + bandwith_limit +''' bytes/second drop \n
+add rule netdev example fwd_chain_ac fwd to bc_eth \n
+add rule netdev example fwd_chain_ca fwd to ba_eth \n
+'''
+
+rc, output, error = nft.cmd(cmd_string)
 
 if rc != 0:
     print(f'{rc = }')
     print(error)
 
-nft.json_cmd(NFT_CONFIG)
-
-print('=== nft.json_cmd({"nftables": [{"list": {"ruleset": None}}]}) ===')
-_, output, _ = nft.json_cmd({'nftables': [{'list': {'ruleset': None}}]})
-pprint(output)
