@@ -22,7 +22,7 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ## Execute
 
-* `sudo tmuxinator start`
+* `sudo tmuxinator start merged-examples drop_rate=10 limit_rate=125000`
 * `CTRL+b d` para detach
 * `sudo tmuxinator stop limit`
 
