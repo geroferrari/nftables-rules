@@ -20,7 +20,7 @@ ip netns exec $NS_B $@
 #ip netns exec $NS_A ping -W 1 -c 2 172.17.100.2
 #ip netns exec $NS_A ping -W 1 -c 10 172.17.100.2
 
-ip netns exec $NS_B nft list ruleset
+ip netns exec $NS_B nft -j list ruleset | tee output.json
 # ip netns exec $NS_B tcpdump -i ba_eth
 sleep infinity
 # desactiva

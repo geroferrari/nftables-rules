@@ -14,7 +14,8 @@ windows:
   - Booking:
       layout: even-vertical
       panes:
-        - inotifywait -r -m output.json -e modify | while read path action file;do python3 ./output.py; done
-        - ip netns exec ns_c iperf3 -i 2 -s -f m
-        - ./wrapper.sh ./with_python.py 0 125000
-        - ip netns exec ns_a iperf3 -O 2 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
+        - inotifywait -r -m output.json -e close_write | while read path action file;do python3 ./output.py; done
+#        - inotifywait -r -m output.json -e modify | while read path action file;do python3 ./output.py; done
+#        - ip netns exec ns_c iperf3 -i 2 -s -f m
+        - ./wrapper.sh ./with_python.py 10 125000
+#        - ip netns exec ns_a iperf3 -O 2 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
