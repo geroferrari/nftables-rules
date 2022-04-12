@@ -24,9 +24,7 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 * `git clone https://github.com/geroferrari/nftables-rules`
 * `cd nftables-merged-examples`
 * `python -m venv venv`
-* `. venv/bin/activate`
-* `pip install -r reqs.txt`
-* `. venv/bin/deactivate`
+* `venv/bin/pip install -r reqs.txt`
 
 ## Execute
 
