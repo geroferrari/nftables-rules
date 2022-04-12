@@ -83,7 +83,12 @@ NFT_CONFIG = {'nftables':
             {'counter': { 
                 'family': family,
                 'table': table,
-                'name': 'counter_ns_ba_ingress_dropped',
+                'name': 'counter_ns_ba_ingress_dropped_by_packetloss',
+            }}, 
+            {'counter': { 
+                'family': family,
+                'table': table,
+                'name': 'counter_ns_ba_ingress_dropped_by_limit',
             }},                
             {'counter': { 
                 'family': family,
@@ -123,8 +128,13 @@ NFT_CONFIG = {'nftables':
             {'counter': { 
                 'family': family,
                 'table': table,
-                'name': 'counter_ns_bc_ingress_dropped',
-            }},                 
+                'name': 'counter_ns_bc_ingress_dropped_by_packetloss',
+            }}, 
+            {'counter': { 
+                'family': family,
+                'table': table,
+                'name': 'counter_ns_bc_ingress_dropped_by_limit',
+            }},                  
             {'add': {'rule':
                      {
                          'family': family,
@@ -206,7 +216,8 @@ NFT_CONFIG = {'nftables':
                                 "left": {"payload": {"protocol": "ip6", "field": "nexthdr"}},
                                 "right": "ipv6-icmp"
                             }},
-                            {"counter": "counter_ns_ba_ingress_ip6"}
+                            {"counter": "counter_ns_ba_ingress_ip6"},
+                            {"drop": "drop"}
                         ]}}
             },
             {'add': {'rule':
@@ -299,7 +310,8 @@ NFT_CONFIG = {'nftables':
                                 "left": {"payload": {"protocol": "ip6", "field": "nexthdr"}},
                                 "right": "ipv6-icmp"
                             }},
-                            {"counter": "counter_ns_bc_ingress_ip6"}
+                            {"counter": "counter_ns_bc_ingress_ip6"},
+                            {"drop": "drop"}
                         ]}}
             },
             {'add': {'rule':
@@ -328,7 +340,7 @@ NFT_CONFIG = {'nftables':
                             'right': loss_percentage
                         }
                     },
-                    {'counter': 'counter_ns_ba_ingress_dropped'},
+                    {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
                     {'drop': "drop"}
                 ]
             }}
@@ -340,7 +352,6 @@ NFT_CONFIG = {'nftables':
             #     'expr': [
             #         {
             #             'limit': {
-            #                 'rate': bandwith_limit,
             #                 'rate': bandwith_limit,
             #                 'per': 'second',
             #                 'rate_unit': 'bytes'
@@ -370,7 +381,7 @@ add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth p
 rc, output, error = nft.json_cmd(NFT_CONFIG)
 
 cmd_string = '''\n
-add rule netdev example fwd_chain_ac limit rate over ''' + bandwith_limit +''' bytes/second drop \n
+add rule netdev example fwd_chain_ac limit rate over ''' + bandwith_limit +''' bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop \n
 add rule netdev example fwd_chain_ac fwd to bc_eth \n
 add rule netdev example fwd_chain_ca fwd to ba_eth \n
 '''

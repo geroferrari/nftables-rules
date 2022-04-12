@@ -11,17 +11,18 @@ source ./_names.sh
 # $@ must be one of:
 #   ./with_python.py <loss percentege> <bandwith limit>
 
-# set -x activa mostrar comando que se ejecuta
-set -x
 
 ip netns exec $NS_B $@
+ip netns exec $NS_C ./ns_c_with_nft.nft
 
 # Test if it really works
 # ip netns exec $NS_A ping  -q -f -W 1 -c 1000 172.17.100.2
 
-ip netns exec $NS_A iperf3 -O 2 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
+ip netns exec $NS_A iperf3 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
 
 ip netns exec $NS_B nft -j list ruleset | tee output.json
+ip netns exec $NS_C nft -j list ruleset | tee ns_c_output.json
+
 sleep infinity
-# desactiva
-set +x
+
+
