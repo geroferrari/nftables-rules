@@ -1,4 +1,4 @@
-# nftables - merged-examples
+# nftables 
 This projects aims to show how counter extension for nftables works. 
 
 ## Idea

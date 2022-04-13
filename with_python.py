@@ -1,18 +1,17 @@
 #!./venv/bin/python3
-from doctest import Example
 from time import sleep
-from traceback import print_tb
 from xmlrpc.client import boolean
 from nftables import Nftables
-from pprint import pprint
 import typer
 import json
 import inotify.adapters
+import os
 
 app = typer.Typer()
 
-i = inotify.adapters.Inotify()
-i.add_watch('output.json')
+# i = inotify.adapters.Inotify()
+# i.add_watch('output.json')
+
 
 family = 'netdev'
 table = 'example'
@@ -328,22 +327,22 @@ NFT_CONFIG = {'nftables':
 nft = Nftables()
 
 
-def print_table():
-    with open('output.json', 'r') as f:
-        json_data = json.load(f)
+# def print_table():
+#     with open('output.json', 'r') as f:
+#         json_data = json.load(f)
 
-    print ("{:<10} | {:<21} | {:<21} |".format('Ingress', 'BA_ETH', 'BC_ETH'))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('', 'packets', 'Bytes', 'packets', 'Bytes'))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('ARP', json_data['nftables'][2]['counter']['packets'] , json_data['nftables'][2]['counter']['bytes'] , json_data['nftables'][11]['counter']['packets'], json_data['nftables'][11]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('ICMP', json_data['nftables'][3]['counter']['packets'] , json_data['nftables'][3]['counter']['bytes'],  json_data['nftables'][12]['counter']['packets'], json_data['nftables'][12]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('TCP', json_data['nftables'][4]['counter']['packets'] , json_data['nftables'][4]['counter']['bytes'],  json_data['nftables'][13]['counter']['packets'], json_data['nftables'][13]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('UDP', json_data['nftables'][5]['counter']['packets'] , json_data['nftables'][5]['counter']['bytes'],  json_data['nftables'][14]['counter']['packets'], json_data['nftables'][14]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('IP', json_data['nftables'][6]['counter']['packets'] , json_data['nftables'][6]['counter']['bytes'],  json_data['nftables'][15]['counter']['packets'], json_data['nftables'][15]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('IP6', json_data['nftables'][7]['counter']['packets'] , json_data['nftables'][7]['counter']['bytes'],  json_data['nftables'][16]['counter']['packets'], json_data['nftables'][16]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('Ethernet', json_data['nftables'][8]['counter']['packets'] , json_data['nftables'][8]['counter']['bytes'],  json_data['nftables'][17]['counter']['packets'], json_data['nftables'][17]['counter']['bytes']))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('Dropped PL', json_data['nftables'][9]['counter']['packets'] , json_data['nftables'][9]['counter']['bytes'],  json_data['nftables'][18]['counter']['packets'], json_data['nftables'][18]['counter']['bytes'] ))
-    print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('Dropped L', json_data['nftables'][10]['counter']['packets'] , json_data['nftables'][10]['counter']['bytes'],  json_data['nftables'][19]['counter']['packets'], json_data['nftables'][19]['counter']['bytes'] ))
-    print (":-------------------------------------------------------------:")
+#     print ("{:<10} | {:<21} | {:<21} |".format('Ingress', 'BA_ETH', 'BC_ETH'))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('', 'packets', 'Bytes', 'packets', 'Bytes'))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('ARP', json_data['nftables'][2]['counter']['packets'] , json_data['nftables'][2]['counter']['bytes'] , json_data['nftables'][11]['counter']['packets'], json_data['nftables'][11]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('ICMP', json_data['nftables'][3]['counter']['packets'] , json_data['nftables'][3]['counter']['bytes'],  json_data['nftables'][12]['counter']['packets'], json_data['nftables'][12]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('TCP', json_data['nftables'][4]['counter']['packets'] , json_data['nftables'][4]['counter']['bytes'],  json_data['nftables'][13]['counter']['packets'], json_data['nftables'][13]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('UDP', json_data['nftables'][5]['counter']['packets'] , json_data['nftables'][5]['counter']['bytes'],  json_data['nftables'][14]['counter']['packets'], json_data['nftables'][14]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('IP', json_data['nftables'][6]['counter']['packets'] , json_data['nftables'][6]['counter']['bytes'],  json_data['nftables'][15]['counter']['packets'], json_data['nftables'][15]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('IP6', json_data['nftables'][7]['counter']['packets'] , json_data['nftables'][7]['counter']['bytes'],  json_data['nftables'][16]['counter']['packets'], json_data['nftables'][16]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('Ethernet', json_data['nftables'][8]['counter']['packets'] , json_data['nftables'][8]['counter']['bytes'],  json_data['nftables'][17]['counter']['packets'], json_data['nftables'][17]['counter']['bytes']))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('Dropped PL', json_data['nftables'][9]['counter']['packets'] , json_data['nftables'][9]['counter']['bytes'],  json_data['nftables'][18]['counter']['packets'], json_data['nftables'][18]['counter']['bytes'] ))
+#     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('Dropped L', json_data['nftables'][10]['counter']['packets'] , json_data['nftables'][10]['counter']['bytes'],  json_data['nftables'][19]['counter']['packets'], json_data['nftables'][19]['counter']['bytes'] ))
+#     print (":-------------------------------------------------------------:")
 
 
 @app.command()
@@ -377,7 +376,7 @@ def test(packet_loss: int, bandwith_limit: str):
 
     nft.json_validate(NFT_CONFIG)
 
-    rc, output, error = nft.cmd(
+    nft.cmd(
     '''
     flush ruleset
     add table netdev example
@@ -387,7 +386,7 @@ def test(packet_loss: int, bandwith_limit: str):
     add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth priority 1; policy accept; }
     ''')
 
-    rc, output, error = nft.json_cmd(NFT_CONFIG)
+    nft.json_cmd(NFT_CONFIG)
 
     cmd_string = '''\n
     add rule netdev example fwd_chain_ac limit rate over ''' + bandwith_limit +''' bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop \n
@@ -395,23 +394,15 @@ def test(packet_loss: int, bandwith_limit: str):
     add rule netdev example fwd_chain_ca fwd to ba_eth \n
     '''
 
-    rc, output, error = nft.cmd(cmd_string)
+    nft.cmd(cmd_string)
 
-    sleep(33)
-
-    nft.cmd('''list ruleset''')
-
-    for event in i.event_gen(yield_nones=False):
-        (_, type_names, path, filename) = event
-    
-        print("PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(
-        path, filename, type_names))
-        if type_names == 'IN_MODIFY':
-            print_table()   
-
-    if rc != 0:
-        print(f'{rc = }')
-        print(error)
+    # for event in i.event_gen(yield_nones=False):
+    #     (_, type_names, path, filename) = event
+    #     print("estoy aca")
+    #     print("PATH=[{}] FILENAME=[{}] EVENT_TYPES={}".format(
+    #     path, filename, type_names))
+    #     if type_names == 'IN_MODIFY':
+    #         print_table()   
 
 
 if __name__ == '__main__':

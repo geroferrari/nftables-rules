@@ -1,6 +1,6 @@
 jsonschema # needed by nftables validator
 typer
-
+sh
 # Python bindings for nftables are included on nftables Arch Linux package
 # /usr/lib/python3.10/site-packages/nftables/nftables.py
 # * they are not in pip repos
