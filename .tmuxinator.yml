@@ -3,7 +3,7 @@
 # IMPORTANT !!!
 # This project is meant to be executed with sudo
 
-name: limit
+name: merged-examples
 root: ./
 
 on_project_start: ./_up.sh
@@ -15,7 +15,5 @@ windows:
       layout: even-vertical
       panes:
         - ip netns exec ns_c iperf3 -i 2 -s -f m
-        - ./wrapper.sh ./with_nft.nft
-        - ip netns exec ns_a iperf3 -O 2 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
-      #  - python3 ./output.py
-      #  - ip netns exec ns_a ping 172.17.100.2
+        - ip netns exec ns_b ./with_python.py <%= @settings["drop_rate"] %> <%= @settings["limit_rate"] %> 
+        - ip netns exec ns_a iperf3 -i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m
