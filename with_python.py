@@ -6,6 +6,8 @@ import typer
 import json
 import inotify.adapters
 import os
+import netns
+from sh import iperf3
 
 app = typer.Typer()
 
@@ -396,6 +398,12 @@ def test(packet_loss: int, bandwith_limit: str):
 
     nft.cmd(cmd_string)
 
+    iperf3 = iperf3.bake('-i 2 -t 10 -c 172.17.100.2 -u --udp-counters-64bit -b 100m --json'.split())
+
+    with netns.NetNS(nsname='ns_a'):
+        typer.secho(f'Base iperf3 command: {iperf3}', fg=typer.colors.YELLOW)
+ 
+
     # for event in i.event_gen(yield_nones=False):
     #     (_, type_names, path, filename) = event
     #     print("estoy aca")
@@ -407,3 +415,5 @@ def test(packet_loss: int, bandwith_limit: str):
 
 if __name__ == '__main__':
     app()
+
+
