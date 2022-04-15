@@ -27,8 +27,7 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 * `venv/bin/pip install -r reqs.txt`
 
 ## Execute
-
-* `sudo tmuxinator start merged-examples drop_rate=10 limit_rate=125000`
+* `sudo tmuxinator start nftables-rules bandwith=10m blockcount=100000 drop_rate=10 limit_rate=125000`
 * `CTRL+b d` para detach
 * `sudo tmuxinator stop limit`
 
