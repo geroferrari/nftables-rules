@@ -15,4 +15,5 @@ windows:
       layout: even-vertical
       panes:
         - ip netns exec ns_c iperf3 -i 2 -s -f m
-        - ./with_python.py <%= @settings["bandwith"] %> <%= @settings["blockcount"] %> <%= @settings["drop_rate"] %> <%= @settings["limit_rate"] %> 
+          # pass all tmuxinator start args to python
+        - ./with_python.py <%- args.each do |arg| %><%= arg %> <%- end %>
