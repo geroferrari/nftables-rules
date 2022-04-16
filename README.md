@@ -1,13 +1,11 @@
-# nftables 
-This projects aims to show how counter extension for nftables works. 
+# nftables-rules
 
 ## Idea
 
-`wrapper.sh` creates 3 network namespaces (A, B & C) and 2 veth pairs
-with the intention of creating a "bridge" **B** between **A** and **C**.
-
-Then, using `with_python.sh` two forwarding rules are created with `nftables`.
-
+Create 3 network namespaces (A, B & C) and 2 veth pairs for
+making a "bridge" **B** between **A** and **C**.
+This bridge can simulate frame loss due to random causes
+and bandwith excess.
 
 ```
 NETWORK A       |                    NETWORK B                    |   NETWORK C
@@ -18,29 +16,32 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ![Diagram](images/nftables.drawio.png "Diagram").
 
-
 ## Preparation
 
 * `git clone https://github.com/geroferrari/nftables-rules`
-* `cd nftables-merged-examples`
+* `cd nftables-rules`
 * `python -m venv venv`
 * `venv/bin/pip install -r reqs.txt`
 
-## Execute
-* `sudo tmuxinator start nftables-rules bandwith=10m blockcount=100000 drop_rate=10 limit_rate=125000`
-* `CTRL+b d` para detach
-* `sudo tmuxinator stop limit`
+## Usage
 
-
+* `sudo tmuxinator start nftables-rules 10m --blockcount 10000 --drop-rate 10 --limit-rate 125000`
+* <kbd>Ctrl</kbd> + <kbd>b</kbd>, release and
+  * <kbd>d</kbd> for detach.
+  * <kbd>z</kbd> for zoom current pane.
+* `sudo tmuxinator stop nftables-rules`
 
 ## Results
-### 1 - No  packet drop & No Bandwit Limit:
-tmuxinator start merged-examples drop_rate=0 limit_rate=125000000000
 
-We are sending 119MBytes from the client to the server (86322 Datagrams) 
+### 1 - No  packet drop & No Bandwit Limit:
+
+* `tmuxinator start nftables-rules 10m --blockcount 10000`
+
+We are making `iperf3` send 10000 1472 byte UDP packets
+
 ![Test 1 - Info](images/test1.png "Test 1 Info").
 
-if we sniff in the ingress of BA_ETH we get the following results
+if we sniff in the ingress of `BA_ETH` we get the following results
 
 ```
 Ingress    | BA_ETH                | BC_ETH                |                                                                                         
@@ -57,7 +58,7 @@ Dropped L  | 0          0          | 0          0          |
 :-------------------------------------------------------------:
 ```
 
-We are also getting the same result if we sniff the ingress of the server (CB_ETH)
+We are also getting the same result if we sniff the ingress of the server (`CB_ETH`)
 ```
 Ingress    | CB_ETH                |
            | packets    Bytes      |
@@ -73,8 +74,6 @@ Dropped    | 0          0          |
 
 ```
 
-
-
 We have 86323 datagrams --> It is the expected result.
 
 But we have around 127MBytes. 
@@ -87,7 +86,8 @@ This number is much more closer to the one we have in the tables.
 
 
 ### 2 - 10% packet drop & No Bandwit Limit:
-tmuxinator start merged-examples drop_rate=10 limit_rate=125000000000
+
+* `tmuxinator start nftables-rules 10m --drop-rate=10`
 
 We are sending 119MBytes from the client to the server (86322 Datagrams) 
 
@@ -100,7 +100,7 @@ We are sending 119MBytes from the client to the server (86322 Datagrams)
 The server is only receiving 107 Mbytes and 8660 Datagram are lost.
 
 
-if we sniff in the ingress of BA_ETH we get the following results
+if we sniff in the ingress of `BA_ETH` we get the following results
 
 ```
 Ingress    | BA_ETH                | BC_ETH                |                                                                                         
@@ -120,7 +120,7 @@ Dropped L  | 0          0          | 0          0          |
 We have 86323 UDP datagrams that match with the datagrams that the client sent. And we have 8627 Dropped Datagram (Packet Loss Dropped) that match with the quantity of Datagram lost.  
 
 
-We are also getting the same result if we sniff the ingress of the server (CB_ETH)
+We are also getting the same result if we sniff the ingress of the server (`CB_ETH`)
 ```
 Ingress    | CB_ETH                |
            | packets    Bytes      |
@@ -140,7 +140,8 @@ It is the expected result.
 
 
 ### 3 - 10% packet drop & 125000 Bandwit Limit:
-tmuxinator start merged-examples drop_rate=10 limit_rate=125000
+
+* `tmuxinator start nftables-rules --drop-rate=10 --limit-rate=125000`
 
 We are sending 119MBytes from the client to the server (86322 Datagrams) 
 
@@ -153,7 +154,7 @@ We are sending 119MBytes from the client to the server (86322 Datagrams)
 The server is only receiving 1.28 Mbytes and 85289 Datagram are lost.
 
 
-if we sniff in the ingress of BA_ETH we get the following results
+if we sniff in the ingress of `BA_ETH` we get the following results
 
 ```
 Ingress    | BA_ETH                | BC_ETH                |
@@ -174,7 +175,7 @@ We have 86322 UDP datagrams that match with the datagrams that the client sent. 
 8796 + 76596 = 85392
 
 
-We are also getting the same result if we sniff the ingress of the server (CB_ETH)
+We are also getting the same result if we sniff the ingress of the server (`CB_ETH`)
 ```
 Ingress    | CB_ETH                |
            | packets    Bytes      |
