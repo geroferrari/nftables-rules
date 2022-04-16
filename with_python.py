@@ -3,13 +3,14 @@ from time import sleep
 from nftables import Nftables
 import typer
 import json
-from sh import iperf3, ErrorReturnCode
+from sh import iperf3, ping, ErrorReturnCode
 import netns
 import sys
 from loguru import logger
 
 app = typer.Typer()
 
+IPERF3_SERVER = '172.17.100.2'
 
 family = 'netdev'
 table = 'example'
@@ -24,8 +25,7 @@ dev_bc = 'bc_eth'
 priority = 1
 policy = 'accept'
 
-NFT_CONFIG = {'nftables':
-        [
+NFT_CONFIG = [
             {'counter': { 
                 'family': family,
                 'table': table,
@@ -320,8 +320,7 @@ NFT_CONFIG = {'nftables':
             #     ]
             # }}
             # }
-        ]}
-
+        ]
 
 
 def print_table(json_data):
@@ -432,7 +431,7 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate, json_data):
         logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate}..........OK')
 
     else:
-        logger.warning(f'# of {iperf_protocol} packets sent by iperf Client ({iperf_packets}) does not much with the packets received in the interface BA_ETH ({nft_udp_packets})')  
+        logger.warning(f'# of {iperf_protocol} packets sent by iperf Client ({iperf_packets}) does not match the packets received in the interface BA_ETH ({nft_udp_packets})')
 
 
 @logger.catch
@@ -445,11 +444,12 @@ def nft_json_validate_and_run(nft, cmds):
         raise RuntimeError(f'nftables return code: {rc}')
     return output
 
+
+@logger.catch
 @app.command()
-def test(bandwith: str, blockcount: str, drop_rate: int, limit_rate: str):
+def test(bandwith: str, blockcount: int = 10000, drop_rate: float = 0, limit_rate: float = 125000000000):
 
-
-    NFT_CONFIG['nftables'].append(        
+    NFT_CONFIG.append(        
         {'add': {'rule': {
             'family': family,
             'table': table,
@@ -464,20 +464,18 @@ def test(bandwith: str, blockcount: str, drop_rate: int, limit_rate: str):
                             'offset': 0
                         }
                         },
-                        'right': drop_rate
+                        'right': str(int(drop_rate))
                     }
                 },
                 {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
                 {'drop': "drop"}
             ]
         }}
-        },)
-
+        })
 
     with netns.NetNS(nsname='ns_b'):
         nft = Nftables()
         nft.set_json_output(True)
-        nft.json_validate(NFT_CONFIG)
         nft.cmd(
         '''
         flush ruleset
@@ -488,21 +486,23 @@ def test(bandwith: str, blockcount: str, drop_rate: int, limit_rate: str):
         add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth priority 1; policy accept; }
         ''')
 
-        nft.json_cmd(NFT_CONFIG)
+        nft_json_validate_and_run(nft, NFT_CONFIG)
 
-        cmd_string = '''\n
-        add rule netdev example fwd_chain_ac limit rate over ''' + limit_rate +''' bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop \n
-        add rule netdev example fwd_chain_ac fwd to bc_eth \n
-        add rule netdev example fwd_chain_ca fwd to ba_eth \n
+        cmd_string = f'''
+        add rule netdev example fwd_chain_ac limit rate over {int(limit_rate)} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop
+        add rule netdev example fwd_chain_ac fwd to bc_eth
+        add rule netdev example fwd_chain_ca fwd to ba_eth
         '''
+        # logger.debug(cmd_string)
 
         nft.cmd(cmd_string)
+        # logger.debug(nft_json_validate_and_run(nft, [{'list': {'ruleset': None }}]))
 
+    iperf3_cmd = f'-i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit -b {bandwith} --blockcount {blockcount} --length 1472'
+    logger.debug(f'{iperf3_cmd = }')
     with netns.NetNS(nsname='ns_a'):
         try:
-            server_host = '172.17.100.2'
-            iperf3_string = '-i 2 -c ' + server_host + ' --json -u --udp-counters-64bit -b ' + bandwith + ' --blockcount '+ blockcount +' --length 1472'
-            r = iperf3(iperf3_string.split())
+            r = iperf3(iperf3_cmd.split())
             r = json.loads(r.stdout)
         except ErrorReturnCode as e:
             typer.secho(f'Error: {e}', fg=typer.colors.RED)
@@ -516,10 +516,16 @@ def test(bandwith: str, blockcount: str, drop_rate: int, limit_rate: str):
     output_dictionary = {**output, **r}
     print_table(output_dictionary)
 
-    compare_results (bandwith, blockcount, drop_rate, limit_rate, output_dictionary)
+    compare_results(bandwith, blockcount, drop_rate, limit_rate, output_dictionary)
 
 
 if __name__ == '__main__':
+    logger.opt(ansi=True)
+    # logger.patch(lambda r: r.update(name='Test')) # por qué no anda???
+    logger.info('Started')
+    try:
+        ping(f'-w 1 -c 1 {IPERF3_SERVER}')
+    except ErrorReturnCode:
+        logger.error(f'ping to iperf3 server failed')
+
     app()
-
-
