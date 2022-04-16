@@ -8,6 +8,7 @@ import netns
 import sys
 from loguru import logger
 
+
 app = typer.Typer()
 
 IPERF3_SERVER = '172.17.100.2'
@@ -414,7 +415,6 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate, json_data):
     else:
         logger.warning(f'# of  bytes sent by iperf Client ({iperf_bytes}) does not much with the bytes received in the interface BA_ETH ({nft_udp_bytes})')  
 
-
     logger.info('-----------------------------------------------------------------------------')
 
     # iperf3 # of packet loss should be equal to the lost ones in BA_ETH
@@ -447,7 +447,8 @@ def nft_json_validate_and_run(nft, cmds):
 
 @logger.catch
 @app.command()
-def test(bandwith: str, blockcount: int = 10000, drop_rate: float = 0, limit_rate: float = 125000000000):
+def test(bandwidth: str, blockcount: int = 10000, drop_rate: float = 0, limit_rate: float = 0):
+    logger.info(f'Test will run with <magenta>{bandwidth = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate = }</>')
 
     NFT_CONFIG.append(        
         {'add': {'rule': {
@@ -488,8 +489,10 @@ def test(bandwith: str, blockcount: int = 10000, drop_rate: float = 0, limit_rat
 
         nft_json_validate_and_run(nft, NFT_CONFIG)
 
-        cmd_string = f'''
-        add rule netdev example fwd_chain_ac limit rate over {int(limit_rate)} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop
+        cmd_string = ''
+        if limit_rate > 0:
+            cmd_string += 'add rule netdev example fwd_chain_ac limit rate over {int(limit_rate)} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
+        cmd_string += f'''
         add rule netdev example fwd_chain_ac fwd to bc_eth
         add rule netdev example fwd_chain_ca fwd to ba_eth
         '''
@@ -498,7 +501,7 @@ def test(bandwith: str, blockcount: int = 10000, drop_rate: float = 0, limit_rat
         nft.cmd(cmd_string)
         # logger.debug(nft_json_validate_and_run(nft, [{'list': {'ruleset': None }}]))
 
-    iperf3_cmd = f'-i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit -b {bandwith} --blockcount {blockcount} --length 1472'
+    iperf3_cmd = f'-i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit -b {bandwidth} --blockcount {blockcount} --length 1472'
     logger.debug(f'{iperf3_cmd = }')
     with netns.NetNS(nsname='ns_a'):
         try:
@@ -516,12 +519,12 @@ def test(bandwith: str, blockcount: int = 10000, drop_rate: float = 0, limit_rat
     output_dictionary = {**output, **r}
     print_table(output_dictionary)
 
-    compare_results(bandwith, blockcount, drop_rate, limit_rate, output_dictionary)
+    compare_results(bandwidth, blockcount, drop_rate, limit_rate, output_dictionary)
 
 
 if __name__ == '__main__':
-    logger.opt(ansi=True)
-    # logger.patch(lambda r: r.update(name='Test')) # por qué no anda???
+    logger = logger.opt(ansi=True)
+    logger = logger.patch(lambda r: r.update(name='Test'))
     logger.info('Started')
     try:
         ping(f'-w 1 -c 1 {IPERF3_SERVER}')
