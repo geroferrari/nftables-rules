@@ -431,11 +431,19 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate, json_data):
         logger.info(f'{nft_drop_dr_bytes} Bytes Packets dropped because of Drop Rate = {drop_rate}..........OK')
         logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate}..........OK')
 
-
     else:
         logger.warning(f'# of {iperf_protocol} packets sent by iperf Client ({iperf_packets}) does not much with the packets received in the interface BA_ETH ({nft_udp_packets})')  
 
 
+@logger.catch
+def nft_json_validate_and_run(nft, cmds):
+    json_cmds = {'nftables': cmds}
+    nft.json_validate(json_cmds)
+    rc, output, error = nft.json_cmd(json_cmds)
+    if rc != 0:
+        logger.error(f'json_cmd: {error}')
+        raise RuntimeError(f'nftables return code: {rc}')
+    return output
 
 @app.command()
 def test(bandwith: str, blockcount: str, drop_rate: int, limit_rate: str):
@@ -500,18 +508,10 @@ def test(bandwith: str, blockcount: str, drop_rate: int, limit_rate: str):
             typer.secho(f'Error: {e}', fg=typer.colors.RED)
             r = json.loads(e.stdout)
 
-    json_cmds = {'nftables': [{'list': {'ruleset': None }}]}
-    nft.json_validate(json_cmds)
-    rc, output, error = nft.json_cmd(json_cmds)
-    if rc != 0:
-        raise RuntimeError(f'nftables return code: {rc}')
-
-    with open('output.json', 'w') as f:
-        original_stdout = sys.stdout
-        sys.stdout = f # Change the standard output to the file we created.
-        print(r)
-        print(output)
-        sys.stdout = original_stdout
+    with netns.NetNS(nsname='ns_b'):
+        nft = Nftables()
+        nft.set_json_output(True)
+        output = nft_json_validate_and_run(nft, [{'list': {'ruleset': None }}])
 
     output_dictionary = {**output, **r}
     print_table(output_dictionary)
