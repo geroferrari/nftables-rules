@@ -343,7 +343,7 @@ def print_table(json_data):
 
 
 
-def compare_results(bandwith, blockcount, drop_rate, limit_rate, json_data):
+def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second, json_data):
     
     ######### IPERF3 VARIABLES ###########
     client_host = str(json_data['start']['connected'][0]['local_host'])+ ':' + str(json_data['start']['connected'][0]['local_port']) 
@@ -421,13 +421,13 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate, json_data):
         logger.info(f'{iperf_packets_lost}({iperf_percent_lost}%) {iperf_protocol} Packets were not received by the iperf server..........OK')
         logger.info(f'{nft_total_drop_packets} {iperf_protocol} Packets dropped in interface BA_ETH of the channel..........OK')
         logger.info(f'{nft_drop_dr_packets} {iperf_protocol} Packets dropped because of Drop Rate = {drop_rate}..........OK')
-        logger.info(f'{nft_drop_lr_packets} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate}..........OK')
+        logger.info(f'{nft_drop_lr_packets} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
         
         logger.info("")
         
         logger.info(f'{nft_total_drop_bytes} Bytes dropped in interface BA_ETH of the channel..........OK')
         logger.info(f'{nft_drop_dr_bytes} Bytes Packets dropped because of Drop Rate = {drop_rate}..........OK')
-        logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate}..........OK')
+        logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
 
     else:
         logger.warning(f'# of {iperf_protocol} packets sent by iperf Client ({iperf_packets}) does not match the packets received in the interface BA_ETH ({nft_udp_packets})')
@@ -450,7 +450,7 @@ def test(bandwidth: str,
          blockcount: int = 10000,
          drop_rate: float = typer.Option(0, min=0, max=1),
          limit_rate_bytes_per_second: int = typer.Option(0, min=0, max=2**32 - 1)):
-    logger.info(f'Test will run with <magenta>{bandwidth = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate = }</>')
+    logger.info(f'Test will run with <magenta>{bandwidth = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate_bytes_per_second = }</>')
 
     NFT_CONFIG.append(        
         {'add': {'rule': {
@@ -507,6 +507,10 @@ def test(bandwidth: str,
     logger.debug(f'{iperf3_cmd = }')
     with netns.NetNS(nsname='ns_a'):
         try:
+            ping(f'-w 3 -c 1 {IPERF3_SERVER}'.split())
+        except ErrorReturnCode as erc:
+            logger.error(f'ping to iperf3 server failed')
+        try:
             r = iperf3(iperf3_cmd.split())
             r = json.loads(r.stdout)
         except ErrorReturnCode as e:
@@ -521,16 +525,12 @@ def test(bandwidth: str,
     output_dictionary = {**output, **r}
     print_table(output_dictionary)
 
-    compare_results(bandwidth, blockcount, drop_rate, limit_rate, output_dictionary)
+    compare_results(bandwidth, blockcount, drop_rate, limit_rate_bytes_per_second, output_dictionary)
 
 
 if __name__ == '__main__':
     logger = logger.opt(ansi=True)
     logger = logger.patch(lambda r: r.update(name='Test'))
     logger.info('Started')
-    try:
-        ping(f'-w 1 -c 1 {IPERF3_SERVER}')
-    except ErrorReturnCode:
-        logger.error(f'ping to iperf3 server failed')
 
     app()
