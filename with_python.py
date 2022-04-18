@@ -326,7 +326,6 @@ NFT_CONFIG = [
 
 def print_table(json_data):
 
-
     print(":------------- NFTABLES NS_B BA_ETH INGRESS -------------------:")
     print ("{:<10} | {:<21} | {:<21} |".format('Ingress', 'BA_ETH', 'BC_ETH'))
     print ("{:<10} | {:<10} {:<10} | {:<10} {:<10} |".format('', 'packets', 'Bytes', 'packets', 'Bytes'))
@@ -465,7 +464,7 @@ def test(bandwidth: str, blockcount: int = 10000, drop_rate: float = 0, limit_ra
                             'offset': 0
                         }
                         },
-                        'right': str(int(drop_rate))
+                        'right': int(drop_rate)
                     }
                 },
                 {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
@@ -491,8 +490,9 @@ def test(bandwidth: str, blockcount: int = 10000, drop_rate: float = 0, limit_ra
 
         cmd_string = ''
         if limit_rate > 0:
-            cmd_string += 'add rule netdev example fwd_chain_ac limit rate over {int(limit_rate)} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
-        cmd_string += f'''
+            limit_rate_str = str(int(limit_rate))
+            cmd_string += f'add rule netdev example fwd_chain_ac limit rate over {str(int(limit_rate))} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
+        cmd_string += '''
         add rule netdev example fwd_chain_ac fwd to bc_eth
         add rule netdev example fwd_chain_ca fwd to ba_eth
         '''
