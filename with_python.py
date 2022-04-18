@@ -446,7 +446,10 @@ def nft_json_validate_and_run(nft, cmds):
 
 @logger.catch
 @app.command()
-def test(bandwidth: str, blockcount: int = 10000, drop_rate: float = 0, limit_rate: float = 0):
+def test(bandwidth: str,
+         blockcount: int = 10000,
+         drop_rate: float = typer.Option(0, min=0, max=1),
+         limit_rate_bytes_per_second: int = typer.Option(0, min=0, max=2**32 - 1)):
     logger.info(f'Test will run with <magenta>{bandwidth = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate = }</>')
 
     NFT_CONFIG.append(        
@@ -489,9 +492,8 @@ def test(bandwidth: str, blockcount: int = 10000, drop_rate: float = 0, limit_ra
         nft_json_validate_and_run(nft, NFT_CONFIG)
 
         cmd_string = ''
-        if limit_rate > 0:
-            limit_rate_str = str(int(limit_rate))
-            cmd_string += f'add rule netdev example fwd_chain_ac limit rate over {str(int(limit_rate))} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
+        if limit_rate_bytes_per_second > 0:
+            cmd_string += f'add rule netdev example fwd_chain_ac limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
         cmd_string += '''
         add rule netdev example fwd_chain_ac fwd to bc_eth
         add rule netdev example fwd_chain_ca fwd to ba_eth
