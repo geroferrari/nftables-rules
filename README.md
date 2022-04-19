@@ -25,7 +25,7 @@ ab_eth       <--|--> ba_eth <-- nftables forwarding --> bc_eth <--|--> cb_eth
 
 ## Usage
 
-* `sudo tmuxinator start nftables-rules 10m --blockcount 10000 --drop-rate 10 --limit-rate 125000`
+* `sudo tmuxinator start nftables-rules --bandwidth-in-mega-bytes 1.25 --blockcount 10000 --drop-rate 0 --limit-rate-bytes-per-second 125000`
 * <kbd>Ctrl</kbd> + <kbd>b</kbd>, release and
   * <kbd>d</kbd> for detach.
   * <kbd>z</kbd> for zoom current pane.
