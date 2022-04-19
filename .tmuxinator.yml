@@ -16,4 +16,4 @@ windows:
       panes:
         - ip netns exec ns_c iperf3 -i 2 -s -f m
           # pass all tmuxinator start args to python
-        - ./with_python.py <%- args.each do |arg| %><%= arg %> <%- end %>
+        - ./channel_simulation.py <%- args.each do |arg| %><%= arg %> <%- end %>
