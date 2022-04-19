@@ -480,18 +480,18 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second
 
     if nft_total_drop_packets - iperf_packets_lost == 0:
         logger.info(f'{iperf_packets_lost}({iperf_percent_lost}%) {iperf_protocol} Packets were not received by the iperf server..........OK')
-        logger.info(f'{nft_total_drop_packets} {iperf_protocol} Packets dropped in interface BA_ETH of the channel..........OK')
+        logger.info(f'{nft_total_drop_packets}({(nft_total_drop_packets* 0.01)}%) {iperf_protocol} Packets dropped in interface BA_ETH of the channel..........OK')
         logger.info(f'{nft_total_drop_bytes} Bytes dropped in interface BA_ETH of the channel..........OK')
    
     elif (nft_total_drop_packets - iperf_packets_lost) < iperf_packets_lost*0.05:
         logger.warning(f'There is a difference of {nft_total_drop_packets - iperf_packets_lost} packets between iperf and nftables counters')
         logger.warning(f'{iperf_packets_lost}({iperf_percent_lost}%) {iperf_protocol} Packets were not received by the iperf server')
-        logger.warning(f'{nft_total_drop_packets} {iperf_protocol} Packets dropped in interface BA_ETH of the channel')
+        logger.warning(f'{nft_total_drop_packets}({(nft_total_drop_packets* 0.01)}%) {iperf_protocol} Packets dropped in interface BA_ETH of the channel')
         logger.warning(f'{nft_total_drop_bytes} Bytes dropped in interface BA_ETH of the channel')
 
     else:
         logger.error(f'{iperf_packets_lost}({iperf_percent_lost}%) {iperf_protocol} Packets were not received by the iperf server')
-        logger.error(f'# of {iperf_protocol} packets sent by iperf Client ({iperf_packets}) does not match the packets received in the interface BA_ETH ({nft_udp_packets})')
+        logger.error(f'# of {iperf_protocol}({(nft_total_drop_packets* 0.01)}%) packets sent by iperf Client ({iperf_packets}) does not match the packets received in the interface BA_ETH ({nft_udp_packets})')
         logger.error(f'{nft_total_drop_bytes} Bytes dropped in interface BA_ETH of the channel')
 
     logger.info("")
@@ -509,7 +509,8 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second
 
     # check if packet drop because of LR match with the limit rate configured by user
     # Bandwith = 10Mbit -- Limit Rate over = 1Mbit, only 10% of the packet pass 
-    if abs(nft_udp_packets-nft_drop_lr_packets) <= iperf_packets*0.1:
+    # I added a error margin of 5% 
+    if abs(nft_udp_packets-nft_drop_lr_packets) <= iperf_packets*((limit_rate_bytes_per_second/bandwith)+0.05):
         logger.info(f'{nft_drop_lr_packets} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
         logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
     
@@ -519,14 +520,10 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second
         logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
     
     else:
-        logger.error(f'There should be around {int(iperf_packets*0.1)} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second} Bytes')
+        logger.error(f'There should be around {int(iperf_packets*0.9)} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second} Bytes')
         logger.error(f'Number of {iperf_protocol} Packets dropped: {nft_drop_lr_packets} ')
         logger.error(f'Number of Bytes dropped: {nft_drop_lr_bytes} ')
        
-    print(nft_udp_packets-nft_drop_lr_packets)
-    print(nft_udp_packets)
-    print(limit_rate_bytes_per_second)
-
 @logger.catch
 def nft_json_validate_and_run(nft, cmds):
     json_cmds = {'nftables': cmds}
@@ -540,11 +537,11 @@ def nft_json_validate_and_run(nft, cmds):
 
 @logger.catch
 @app.command()
-def test(bandwidth: str,
+def test(bandwidth_in_mega_bytes: float = 1.25,
          blockcount: int = 10000,
          drop_rate: float = typer.Option(0, min=0, max=1),
          limit_rate_bytes_per_second: int = typer.Option(0, min=0, max=2**32 - 1)):
-    logger.info(f'Test will run with <magenta>{bandwidth = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate_bytes_per_second = }</>')
+    logger.info(f'Test will run with <magenta>{bandwidth_in_mega_bytes = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate_bytes_per_second = }</>')
 
     NFT_CONFIG.append(        
         {'add': {'rule': {
@@ -597,7 +594,7 @@ def test(bandwidth: str,
         nft.cmd(cmd_string)
         # logger.debug(nft_json_validate_and_run(nft, [{'list': {'ruleset': None }}]))
 
-    iperf3_cmd = f'-i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit -b {bandwidth} --blockcount {blockcount} --length 1472'
+    iperf3_cmd = f'-i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit -b {str(int(bandwidth_in_mega_bytes * 8)) + "m"} --blockcount {blockcount} --length 1472'
     logger.debug(f'{iperf3_cmd = }')
     with netns.NetNS(nsname='ns_a'):
         try:
@@ -619,7 +616,7 @@ def test(bandwidth: str,
     output_dictionary = {**output, **r}
     print_table(output_dictionary)
 
-    compare_results(bandwidth, blockcount, drop_rate, limit_rate_bytes_per_second, output_dictionary)
+    compare_results(bandwidth_in_mega_bytes * 8 * 1e6 , blockcount, drop_rate, limit_rate_bytes_per_second, output_dictionary)
 
 
 if __name__ == '__main__':
