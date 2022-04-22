@@ -495,9 +495,8 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second
         logger.error(f'{nft_total_drop_bytes} Bytes dropped in interface BA_ETH of the channel')
 
     logger.info("")
-
     # check if packet drop because of DR match with the drop rate configured by user
-    if abs(nft_drop_dr_packets - (iperf_packets*drop_rate)) <= (iperf_packets*drop_rate)*0.05:
+    if abs(1 - ((blockcount - nft_drop_lr_packets)*drop_rate/nft_drop_dr_packets)) <= 0.05:
         logger.info(f'{nft_drop_dr_packets} {iperf_protocol} Packets dropped because of Drop Rate = {drop_rate}..........OK')
         logger.info(f'{nft_drop_dr_bytes} Bytes dropped because of Drop Rate = {drop_rate}..........OK')
 
@@ -510,7 +509,7 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second
     # check if packet drop because of LR match with the limit rate configured by user
     # Bandwith = 10Mbit -- Limit Rate over = 1Mbit, only 10% of the packet pass 
     # I added a error margin of 5% 
-    if abs(nft_udp_packets-nft_drop_lr_packets) <= iperf_packets*((limit_rate_bytes_per_second/bandwith)+0.05):
+    if abs((1-nft_drop_lr_packets/blockcount) - limit_rate_bytes_per_second*8/bandwith) <= 0.05:
         logger.info(f'{nft_drop_lr_packets} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
         logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
     
@@ -520,7 +519,7 @@ def compare_results(bandwith, blockcount, drop_rate, limit_rate_bytes_per_second
         logger.info(f'{nft_drop_lr_bytes} Bytes dropped because of Limit Rate = {limit_rate_bytes_per_second}..........OK')
     
     else:
-        logger.error(f'There should be around {int(iperf_packets*0.9)} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second} Bytes')
+        logger.error(f'There should be around {int(iperf_packets*(1-limit_rate_bytes_per_second/bandwith))} {iperf_protocol} Packets dropped because of Limit Rate = {limit_rate_bytes_per_second} Bytes')
         logger.error(f'Number of {iperf_protocol} Packets dropped: {nft_drop_lr_packets} ')
         logger.error(f'Number of Bytes dropped: {nft_drop_lr_bytes} ')
        
@@ -543,29 +542,6 @@ def test(bandwidth_in_mega_bytes: float = 1.25,
          limit_rate_bytes_per_second: int = typer.Option(0, min=0, max=2**32 - 1)):
     logger.info(f'Test will run with <magenta>{bandwidth_in_mega_bytes = }</>, <magenta>{blockcount = }</>, <magenta>{drop_rate = }</>, <magenta>{limit_rate_bytes_per_second = }</>')
 
-    NFT_CONFIG.append(        
-        {'add': {'rule': {
-            'family': family,
-            'table': table,
-            'chain': fwd_chain_ac,
-            'expr': [
-                {
-                    'match': {
-                        'op': '<',
-                        'left': {'numgen': {
-                            'mode': 'random',
-                            'mod': 1000,
-                            'offset': 0
-                        }
-                        },
-                        'right': int(drop_rate*1000)
-                    }
-                },
-                {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
-                {'drop': "drop"}
-            ]
-        }}
-        })
 
     with netns.NetNS(nsname='ns_b'):
         nft = Nftables()
@@ -576,31 +552,88 @@ def test(bandwidth_in_mega_bytes: float = 1.25,
         add table netdev example
         add chain netdev example ns_ba_ingress { type filter hook ingress device ba_eth priority 0; policy accept; }
         add chain netdev example ns_bc_ingress { type filter hook ingress device bc_eth priority 0; policy accept; }
-        add chain netdev example fwd_chain_ac { type filter hook ingress device ba_eth priority 1; policy accept; }
-        add chain netdev example fwd_chain_ca { type filter hook ingress device bc_eth priority 1; policy accept; }
         ''')
 
         nft_json_validate_and_run(nft, NFT_CONFIG)
 
         cmd_string = ''
         if limit_rate_bytes_per_second > 0:
-            cmd_string += f'add rule netdev example fwd_chain_ac limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
-        cmd_string += '''
-        add rule netdev example fwd_chain_ac fwd to bc_eth
-        add rule netdev example fwd_chain_ca fwd to ba_eth
-        '''
-        # logger.debug(cmd_string)
+            cmd_string += f'add rule netdev example ns_ba_ingress limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
+            nft.cmd(cmd_string)
 
+        NFT_CONFIG_DR = [        
+            {'add': {'rule': {
+                'family': family,
+                'table': table,
+                'chain': ns_ba_ingress,
+                'expr': [
+                    {
+                        'match': {
+                            'op': '<',
+                            'left': {'numgen': {
+                                'mode': 'random',
+                                'mod': 1000,
+                                'offset': 0
+                            }
+                            },
+                            'right': int(drop_rate*1000)
+                        }
+                    },
+                    {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
+                    {'drop': "drop"}
+                ]
+            }}
+            }]
+
+        nft_json_validate_and_run(nft, NFT_CONFIG_DR)
+
+        cmd_string = '''
+        add rule netdev example ns_ba_ingress fwd to bc_eth
+        '''
         nft.cmd(cmd_string)
+
+        cmd_string = ''
+        if limit_rate_bytes_per_second > 0:
+            cmd_string += f'add rule netdev example ns_bc_ingress limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_bc_ingress_dropped_by_limit drop'
+            nft.cmd(cmd_string)
+
+        NFT_CONFIG_DR = [        
+            {'add': {'rule': {
+                'family': family,
+                'table': table,
+                'chain': ns_bc_ingress,
+                'expr': [
+                    {
+                        'match': {
+                            'op': '<',
+                            'left': {'numgen': {
+                                'mode': 'random',
+                                'mod': 1000,
+                                'offset': 0
+                            }
+                            },
+                            'right': int(drop_rate*1000)
+                        }
+                    },
+                    {'counter': 'counter_ns_bc_ingress_dropped_by_packetloss'},
+                    {'drop': "drop"}
+                ]
+            }}
+            }]
+
+        nft_json_validate_and_run(nft, NFT_CONFIG_DR)
+
+        cmd_string = '''
+        add rule netdev example ns_bc_ingress fwd to ba_eth
+        '''
+        nft.cmd(cmd_string)
+
+
         # logger.debug(nft_json_validate_and_run(nft, [{'list': {'ruleset': None }}]))
 
     iperf3_cmd = f'-i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit -b {str(int(bandwidth_in_mega_bytes * 8)) + "m"} --blockcount {blockcount} --length 1472'
     logger.debug(f'{iperf3_cmd = }')
     with netns.NetNS(nsname='ns_a'):
-        try:
-            ping(f'-w 3 -c 1 {IPERF3_SERVER}'.split())
-        except ErrorReturnCode as erc:
-            logger.error(f'ping to iperf3 server failed')
         try:
             r = iperf3(iperf3_cmd.split())
             r = json.loads(r.stdout)
