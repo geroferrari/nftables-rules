@@ -28,3 +28,6 @@ ip -n $NS_C link set dev cb_eth up
 # IP assignment
 ip -n $NS_A addr add 172.17.100.1/24 dev ab_eth
 ip -n $NS_C addr add 172.17.100.2/24 dev cb_eth
+
+
+
