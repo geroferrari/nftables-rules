@@ -466,12 +466,21 @@ def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_sec
 
     logger.debug(f'{args = }')
 
+    retries = 5
+    good = False
     with netns.NetNS(nsname='ns_a'):
-        try:
-            r = iperf3(args.split())
-            r = json.loads(r.stdout)
-        except ErrorReturnCode as e:
-            typer.secho(f'Error: {e}', fg=typer.colors.RED)
+        while retries > 0:
+            try:
+                r = iperf3(args.split())
+                r = json.loads(r.stdout)
+                retries = 0
+                good = True
+            except ErrorReturnCode as e:
+                typer.secho(f'Error: {e}', fg=typer.colors.RED)
+                typer.secho(f'Retrying: {retries}', fg=typer.colors.RED)
+                retries -= 1
+                sleep(0.2)
+        if not good:
             r = json.loads(e.stdout)
 
     with netns.NetNS(nsname='ns_b'):
