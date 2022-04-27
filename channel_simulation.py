@@ -334,8 +334,8 @@ SUITE = {
             #'zerocopy': [False],
             # 'zerocopy': [True, False],
             'delay_ms': [0, 100, 300],
-            'drop_rate': [0, 0.01, 0.1 ],
-            'limit_rate_bytes_per_second' : [1000000000],
+            'drop_rate': [0, 0.01 ],
+            'limit_rate_bytes_per_second' : [0, 1000000000],
             'blockcount' : [100000]
         }
 
@@ -384,72 +384,73 @@ def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_sec
 
             nft_json_validate_and_run(nft, NFT_CONFIG)
 
-            cmd_string = ''
-            if limit_rate_bytes_per_second > 0:
-                cmd_string += f'add rule netdev example ns_ba_ingress limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
+            if limit_rate_bytes_per_second != 0 or drop_rate != 0:
+                cmd_string = ''
+                if limit_rate_bytes_per_second > 0:
+                    cmd_string += f'add rule netdev example ns_ba_ingress limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_ba_ingress_dropped_by_limit drop'
+                    nft.cmd(cmd_string)
+
+                NFT_CONFIG_DR = [        
+                    {'add': {'rule': {
+                        'family': family,
+                        'table': table,
+                        'chain': ns_ba_ingress,
+                        'expr': [
+                            {
+                                'match': {
+                                    'op': '<',
+                                    'left': {'numgen': {
+                                        'mode': 'random',
+                                        'mod': 1000,
+                                        'offset': 0
+                                    }
+                                    },
+                                    'right': int(drop_rate*1000)
+                                }
+                            },
+                            {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
+                            {'drop': "drop"}
+                        ]
+                    }}
+                    }]
+
+                nft_json_validate_and_run(nft, NFT_CONFIG_DR)
+
+                cmd_string = '''
+                add rule netdev example ns_ba_ingress fwd to bc_eth
+                '''
                 nft.cmd(cmd_string)
 
-            NFT_CONFIG_DR = [        
-                {'add': {'rule': {
-                    'family': family,
-                    'table': table,
-                    'chain': ns_ba_ingress,
-                    'expr': [
-                        {
-                            'match': {
-                                'op': '<',
-                                'left': {'numgen': {
-                                    'mode': 'random',
-                                    'mod': 1000,
-                                    'offset': 0
+                cmd_string = ''
+                if limit_rate_bytes_per_second > 0:
+                    cmd_string += f'add rule netdev example ns_bc_ingress limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_bc_ingress_dropped_by_limit drop'
+                    nft.cmd(cmd_string)
+
+                NFT_CONFIG_DR = [        
+                    {'add': {'rule': {
+                        'family': family,
+                        'table': table,
+                        'chain': ns_bc_ingress,
+                        'expr': [
+                            {
+                                'match': {
+                                    'op': '<',
+                                    'left': {'numgen': {
+                                        'mode': 'random',
+                                        'mod': 1000,
+                                        'offset': 0
+                                    }
+                                    },
+                                    'right': int(drop_rate*1000)
                                 }
-                                },
-                                'right': int(drop_rate*1000)
-                            }
-                        },
-                        {'counter': 'counter_ns_ba_ingress_dropped_by_packetloss'},
-                        {'drop': "drop"}
-                    ]
-                }}
-                }]
+                            },
+                            {'counter': 'counter_ns_bc_ingress_dropped_by_packetloss'},
+                            {'drop': "drop"}
+                        ]
+                    }}
+                    }]
 
-            nft_json_validate_and_run(nft, NFT_CONFIG_DR)
-
-            cmd_string = '''
-            add rule netdev example ns_ba_ingress fwd to bc_eth
-            '''
-            nft.cmd(cmd_string)
-
-            cmd_string = ''
-            if limit_rate_bytes_per_second > 0:
-                cmd_string += f'add rule netdev example ns_bc_ingress limit rate over {limit_rate_bytes_per_second} bytes/second counter name counter_ns_bc_ingress_dropped_by_limit drop'
-                nft.cmd(cmd_string)
-
-            NFT_CONFIG_DR = [        
-                {'add': {'rule': {
-                    'family': family,
-                    'table': table,
-                    'chain': ns_bc_ingress,
-                    'expr': [
-                        {
-                            'match': {
-                                'op': '<',
-                                'left': {'numgen': {
-                                    'mode': 'random',
-                                    'mod': 1000,
-                                    'offset': 0
-                                }
-                                },
-                                'right': int(drop_rate*1000)
-                            }
-                        },
-                        {'counter': 'counter_ns_bc_ingress_dropped_by_packetloss'},
-                        {'drop': "drop"}
-                    ]
-                }}
-                }]
-
-            nft_json_validate_and_run(nft, NFT_CONFIG_DR)
+                nft_json_validate_and_run(nft, NFT_CONFIG_DR)
 
             cmd_string = '''
             add rule netdev example ns_bc_ingress fwd to ba_eth
