@@ -342,7 +342,6 @@ SUITE = {
         }
 
 
-
 @logger.catch
 def nft_json_validate_and_run(nft, cmds):
     json_cmds = {'nftables': cmds}
@@ -371,8 +370,9 @@ def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_sec
 
     with netns.NetNS(nsname='ns_b'):
         try:
-            tc(f'qdisc add dev ba_eth root netem delay {delay_ms}ms'.split())
-            tc(f'qdisc list'.split())
+            if delay_ms > 0:
+                tc(f'qdisc add dev ba_eth root netem delay {delay_ms}ms'.split())
+                tc(f'qdisc list'.split())
 
             nft = Nftables()
             nft.set_json_output(True)
