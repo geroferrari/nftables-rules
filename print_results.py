@@ -103,25 +103,27 @@ def print_table(json_file):
         print_nftable += ":-------------------------------------------------------------: \n"
         print_nftable += "\n"
 
-        print(print_nftable)
+        #print(print_nftable)
 
         ##########################################################################
         ######################### Print iperf info ###############################
         ##########################################################################
 
-        print("Iperf3 values:")
-        print(json.dumps(result[1]["end"]["sum"], indent=4, sort_keys=True))
-        print("")
+        # print("Iperf3 values:")
+        # print(json.dumps(result[1]["end"]["sum"], indent=4, sort_keys=True))
+        # print("")
 
-        print("Cpu utilization percentage:")
-        print(json.dumps(result[1]["end"]["cpu_utilization_percent"], indent=4, sort_keys=True))
-
-        bps = result[1]['end']['sum']['bits_per_second']
-        lost_percent = result[1]['end']['sum']['lost_percent']
-        time_delay = result[1]['end']['sum']['seconds'] - result[1]['end']['streams'][0]['udp']['seconds']
-        print(f'bps: {bps/1e9:0.3f}')
-        print(f'Lost Percent: {lost_percent:0.1f}%')
-        print(f'Delay measured: {time_delay}s')
+        # print("Cpu utilization percentage:")
+        # print(json.dumps(result[1]["end"]["cpu_utilization_percent"], indent=4, sort_keys=True))
+        try:
+            bps = result[1]['end']['sum']['bits_per_second']
+            lost_percent = result[1]['end']['sum']['lost_percent']
+            time_delay = result[1]['end']['sum']['seconds'] - result[1]['end']['streams'][0]['udp']['seconds']
+            print(f'bps: {bps/1e9:0.3f}')
+            print(f'Lost Percent: {lost_percent:0.1f}%')
+            print(f'Delay measured: {time_delay}s')
+        except KeyError:
+            print(result[1]['error'])
 
         print("_______________________________________________________________________")
 

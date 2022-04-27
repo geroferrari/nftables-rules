@@ -326,17 +326,17 @@ NFT_CONFIG = [
 
 SUITE = {
             #'rate': ['1g', '50g'],
-            'rate': ['100m'],                    #bandwith
+            'rate': ['5g', '8g', '10g'],                    #bandwith
             #'protocol': ['UDP', 'TCP'],
             'protocol': ['UDP'],
             'parallel': [1],
             #'parallel': [1, 2, 8],
             #'zerocopy': [False],
             # 'zerocopy': [True, False],
-            'delay_ms': [0, 100, 1000],
-            'drop_rate': [0],
-            'limit_rate_bytes_per_second' : [12500000],
-            'blockcount' : [10000]
+            'delay_ms': [0, 100, 300],
+            'drop_rate': [0, 0.01, 0.1 ],
+            'limit_rate_bytes_per_second' : [1000000000],
+            'blockcount' : [100000]
         }
 
 
@@ -351,18 +351,17 @@ def nft_json_validate_and_run(nft, cmds):
     return output
 
 
-def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_second, blockcount, max_tcp_segment=False):
+def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_second, blockcount):
 
     # First set the channel:
     req = {'delay_ms': delay_ms, 'drop_rate': drop_rate}
 
-    args = f' -i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit' if protocol == 'UDP' else ''
+    args = f' -i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit' if protocol == 'UDP' else '-i 2 -c {IPERF3_SERVER} --json'
 
     args += f' -b {rate}'
     args += f' --blockcount {blockcount}'
     args += ' --length 1472'
-
-   # args += f' -P {parallel}'
+    args += f' -P {parallel}'
 
     typer.secho(f'Testing for {args}', fg=typer.colors.GREEN)
 
@@ -370,6 +369,7 @@ def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_sec
         try:
             if delay_ms > 0:
                 tc(f'qdisc add dev ba_eth root netem delay {delay_ms}ms'.split())
+                tc(f'qdisc add dev bc_eth root netem delay {delay_ms}ms'.split())
                 tc(f'qdisc list'.split())
 
             nft = Nftables()
@@ -465,26 +465,26 @@ def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_sec
     logger.debug(f'{args = }')
 
     retries = 5
-    good = False
     with netns.NetNS(nsname='ns_a'):
         while retries > 0:
             try:
                 r = iperf3(args.split())
                 r = json.loads(r.stdout)
                 retries = 0
-                good = True
             except ErrorReturnCode as e:
                 typer.secho(f'Error: {e}', fg=typer.colors.RED)
                 typer.secho(f'Retrying: {retries}', fg=typer.colors.RED)
                 retries -= 1
-                sleep(0.2)
-        if not good:
-            r = json.loads(e.stdout)
+                if retries == 0:
+                    r = json.loads(e.stdout)
+
 
     with netns.NetNS(nsname='ns_b'):
         nft = Nftables()
         nft.set_json_output(True)
-        tc(f'qdisc delete dev ba_eth root netem'.split())
+        if delay_ms > 0:
+            tc(f'qdisc delete dev ba_eth root netem'.split())
+            tc(f'qdisc delete dev bc_eth root netem'.split())
         output = nft_json_validate_and_run(nft, [{'list': {'ruleset': None }}])
 
     return {**output, **r}
