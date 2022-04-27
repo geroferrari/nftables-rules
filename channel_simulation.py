@@ -325,8 +325,6 @@ NFT_CONFIG = [
         ]
 
 SUITE = {
-            # 'mtu': [1500, 9000],
-            #'mtu': [1500],
             #'rate': ['1g', '50g'],
             'rate': ['100m'],                    #bandwith
             #'protocol': ['UDP', 'TCP'],
