@@ -11,9 +11,27 @@ on_project_start: ./_up.sh
 on_project_stop: ./_down.sh
 
 windows:
-  - Booking:
+  - Channel5101:
       layout: even-vertical
       panes:
         - ip netns exec ns_c iperf3 -i 2 -s -f m
-          # pass all tmuxinator start args to python
-        - ./channel_simulation.py  <%- args.each do |arg| %><%= arg %> <%- end %>
+        - ./channel_simulation.py
+  #     layout: even-vertical
+  #     panes:
+  #       - ip netns exec ns_c iperf3 -i 2 -s -p 5101 -f m
+  #       - ./channel_simulation_5101.py
+  # - Channel5102:
+  #     layout: even-vertical
+  #     panes:
+  #       - ip netns exec ns_c iperf3 -i 2 -s -p 5102 -f m
+  #       - ./channel_simulation_5102.py 
+  # - Channel5103:
+  #     layout: even-vertical
+  #     panes:
+  #       - ip netns exec ns_c iperf3 -i 2 -s -p 5103 -f m
+  #       - ./channel_simulation_5103.py
+  # - Channel5104:
+  #     layout: even-vertical
+  #     panes:
+  #       - ip netns exec ns_c iperf3 -i 2 -s -p 5104 -f m
+  #       - ./channel_simulation_5104.py
