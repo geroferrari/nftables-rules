@@ -353,9 +353,6 @@ def nft_json_validate_and_run(nft, cmds):
 
 def test(rate, protocol, parallel, delay_ms, drop_rate, limit_rate_bytes_per_second, blockcount):
 
-    # First set the channel:
-    req = {'delay_ms': delay_ms, 'drop_rate': drop_rate}
-
     args = f' -i 2 -c {IPERF3_SERVER} --json -u --udp-counters-64bit' if protocol == 'UDP' else '-i 2 -c {IPERF3_SERVER} --json'
 
     args += f' -b {rate}'
