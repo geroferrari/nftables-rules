@@ -1,21 +1,16 @@
 # ./.tmuxinator.yml
-#
-# IMPORTANT !!!
-# This project is meant to be executed with sudo
 
 name: nftables-rules
 root: ./
 
-  # on_project_start: ./_up.sh
-
-  # on_project_stop: ./_down.sh
+startup_window: htop
 
 windows:
-  - Booking:
+  - iperf3_server:
+      panes:
+        - iperf3 -i 2 -s -f m
+  - htop:
       layout: even-vertical
       panes:
-        # - ip netns exec ns_c iperf3 -i 2 -s -f m
-        - iperf3 -i 2 -s -f m
-        - iperf3 -i 2 -c localhost -u --udp-counters-64bit -b 8g --blockcount 100000 --length 1472 -P 1
-          # pass all tmuxinator start args to python
-          # - ./channel_simulation.py  <%- args.each do |arg| %><%= arg %> <%- end %>
+        - iperf3 -i 2 -c localhost -u --udp-counters-64bit -b 10g --blockcount 10000000 --length 1472 -P 1
+        - HTOPRC=./htoprc htop -u root
